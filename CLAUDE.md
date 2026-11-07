@@ -1,0 +1,101 @@
+# CLAUDE.md — Mayukh Banerjee portfolio
+
+Living project guide. **Update this file whenever something about the site changes.**
+Last updated: 2026-11-07.
+
+## What this is
+Personal portfolio for Mayukh Banerjee (AI/ML engineer, Bangalore). The audience is mainly recruiters hiring for full-time AI/ML roles.
+The whole site is one long scroll split into 9 "scenes", framed as a 90-minute football match (he captained Karnataka's U-17 team to a national gold).
+
+Planning docs live in `Claude/` (gitignored, local only):
+- `07_STORY_BIBLE.md`: facts about him
+- `08_NARRATIVE_AND_COPY.md`: approved copy
+- `09_VOICE_RULES.md`: how copy must sound
+- `10_CREATIVE_DIRECTION.md`: design brief
+
+Read 09 and 10 before changing anything visible.
+
+## Commands
+```bash
+npm run dev        # local dev (Turbopack)
+npm run build      # production build, must pass before every commit
+npm run start      # serve the production build
+npm run typecheck  # tsc --noEmit
+```
+
+## Stack
+- Next.js 16 (App Router), React 19, TypeScript strict.
+- GSAP 3 + ScrollTrigger (via `@gsap/react` `useGSAP`) for all scroll choreography.
+- Lenis for smooth scroll, bridged to the GSAP ticker in `components/Providers.tsx`.
+- three.js + React Three Fiber + drei, used **only** in `components/three/*` and lazy-loaded.
+- Tailwind v4, **for layout only**. Color, type and motion use CSS tokens in `app/globals.css`.
+- Fonts via `next/font/google`: Archivo (variable, `wdth` axis), Instrument Sans, Instrument Serif, JetBrains Mono.
+
+## Map
+```
+app/
+  layout.tsx            fonts, metadata, JSON-LD, Nav, MatchClock, HighlightsSheet, grain
+  page.tsx              scene order
+  globals.css           tokens (--black --paper --mute --teal), type primitives, grain
+  not-found.tsx         404 ("Possibly a hallucination.")
+components/
+  Providers.tsx         intro phase, Lenis instance, highlights-open state, ScrollTrigger sort/refresh
+  sections/             one file per scene (see table below)
+  three/                PipelineScene (Moxsend), FormationScene (closing). R3F, client-only
+  work/                 TinyLM, PipelineVisual, SalonStory, BuildingSim, VoiceWave, ProjectOverlay
+  ui/                   Nav, MatchClock, SectionLabel, MaskLines, LiveTime, HighlightsSheet
+data/portfolio.ts       EVERY word on the site + image paths + LM corpus builder
+lib/
+  gsap.ts               plugin registration + MQ media-query keys
+  hooks.ts              reduced motion, near/in viewport, image-exists check
+  lm/trigram.ts         the from-scratch trigram language model
+public/images/          photos (see README there)
+```
+
+## Scenes
+| # | File | What happens | 3D? |
+|---|---|---|---|
+| 00+01 | `sections/Hero.tsx` | Loader is built into the hero: a 1px line draws, the counter follows real loading, the line shatters, and MAYUKH / BANERJEE slam in. The name is an SVG mask: the portrait shows only through the letters. On scroll, the view zooms into the H crossbar until the photo fills the frame. Intro plays once per session. | no |
+| 02 | `sections/Statement.tsx` | Paper. "I keep noticing problems…": each word snaps in on its own scroll position (pinned). | no |
+| 03 | `sections/Origin.tsx` | Black. Pinned horizontal chapters with giant numerals: 06 / 2+2→4 / 200 / 100K. Vertical on mobile. | no |
+| 04 | `sections/HowIWork.tsx` | Research-first copy, depth ladder, and **TinyLM**: a real trigram model trained on the site's own text, showing live next-word probabilities. | no |
+| 05 | `sections/Work.tsx` | Moxsend → Scheduler AI → EcoLoop → Evoke. Giant cropped names, one proving visual each, `→` opens a black overlay. | Moxsend pipeline |
+| 06 | `sections/Toolkit.tsx` | Op-ed columns. Honest labels: shipped / built by hand / used. | no (on purpose) |
+| 07 | `sections/OffThePitch.tsx` | Football photo + "Under-17. All India. Gold.", diary entries struck through on scroll, then one quiet line. | no |
+| 08 | `sections/FullTime.tsx` | Vision, "Say hi.", email copy, footer. Behind it, a 4-3-3 formation connects into a network; the last edge is teal. | Formation |
+
+Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `[ 30 SEC ]` sheet (also the `H` key), nav with `mix-blend-mode: difference`.
+
+## Hard rules
+1. **Copy only lives in `data/portfolio.ts`**, and must come from `Claude/08_NARRATIVE_AND_COPY.md`. Never hardcode text in JSX.
+2. **Voice:** first person, no em dashes in site copy, no slogans or "Not X. Y." lines, no invented details. Test: would Mayukh say it to a recruiter on a call?
+3. **Teal `#00d4b4` = verified fact, max 5 uses, only on black:**
+   1. hero bottom line
+   2. "gold" (Origin)
+   3. "200" (Origin)
+   4. Moxsend 90%+ (overlay)
+   5. last formation edge
+
+   Count before adding any.
+4. **3D only where it explains something.** No decorative shapes, starfields or orbs.
+5. Every scroll animation sits inside `gsap.matchMedia()` with `MQ.motion` (reduced motion gets the static end state).
+6. Pinned triggers need `refreshPriority` in page order (hero 3, statement 2, origin 1), or start positions break.
+7. 3D canvases mount only near the viewport (`useNearViewport`) and render only while visible (`frameloop`).
+8. Never put salary, phone number or address on the site.
+
+## Photos (pending)
+Drop `hero.jpg`, `football.jpg`, `diary.jpg` into `public/images/` (specs in `public/images/README.md`). Each scene detects the file and falls back to a grain/gradient placeholder until it exists.
+
+## Status / TODO
+- [x] All 9 scenes built, desktop + mobile checked via screenshots, build passing
+- [ ] Real photos → `public/images/`
+- [ ] `public/resume.pdf` (linked from nav, contact and the 30 SEC sheet; 404 until added)
+- [ ] Confirm with Easehawk that competitor names and Moxsend details are OK to publish
+- [ ] Mayukh to sign off copy blocks added in code beyond doc 08: Scheduler/EcoLoop/Evoke "long" paragraphs, inbox paragraph, LM intro
+- [ ] Diary entries are placeholders until a photo of the real diary arrives
+- [ ] Open facts: U-15/U-17 years and tournament name, Evoke paper link, EcoLoop result, E-Cell event name
+- [ ] GitHub repo + Vercel import; set the real domain in `app/layout.tsx` (`url`)
+- [ ] OG image (static render of the hero mask frame)
+
+## Commit format
+`feat: section-[XX]-[name] complete` for scenes; conventional commits otherwise.

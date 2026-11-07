@@ -1,0 +1,312 @@
+/**
+ * Every word on the site lives here.
+ * Source of truth for copy: Claude/08_NARRATIVE_AND_COPY.md (private planning folder).
+ * Voice rules: Claude/09_VOICE_RULES.md — no em dashes, no slogans, first person, real details only.
+ */
+
+export type Project = {
+  slug: string;
+  name: string;
+  meta: string;
+  problem: string;
+  body: string[];
+  receipt: { value: string; label: string };
+  stack: string;
+  long: string[];
+  links: { label: string; href: string }[];
+  visual: "pipeline" | "salon" | "building" | "voice";
+};
+
+export const site = {
+  name: "Mayukh Banerjee",
+  first: "MAYUKH",
+  last: "BANERJEE",
+  monogram: "MB",
+  role: "AI/ML engineer",
+  city: "Bangalore",
+  timezone: "Asia/Kolkata",
+  tzLabel: "IST",
+  current: "Currently: AI at Easehawk",
+  email: "mayukhbanerjee011@gmail.com",
+  links: {
+    linkedin: "https://www.linkedin.com/in/mayukh-banerjee",
+    github: "https://github.com/MayukhBanerjee",
+    resume: "/resume.pdf",
+  },
+  description:
+    "AI/ML engineer from Bangalore. I build AI systems end to end, mostly the parts that have to keep working when something goes wrong.",
+  classOf: "VIT, class of 2027",
+};
+
+/** Drop real photos into /public/images with these names. Missing files fall back gracefully. */
+export const images = {
+  hero: "/images/hero.jpg",
+  football: "/images/football.jpg",
+  diary: "/images/diary.jpg",
+};
+
+export const hero = {
+  descriptor:
+    "I build AI systems, mostly the parts that have to keep working when something goes wrong.",
+  chips: ["AI/ML engineer", "Agentic systems", "Karnataka U-17 captain"],
+};
+
+export const about = {
+  paragraphs: [
+    "I'm Mayukh, an AI/ML engineer from Bangalore.",
+    "I got into machine learning by building small projects, and kept going further down until I understood how it all actually works: transformers, embeddings, how a model picks the next word. These days I build AI systems end to end, from the model calls to the pipelines and caches around them.",
+    "Before any of that, there was football. Six years for my school, and later for Karnataka. I captained our under-17 side to a national title. A lot of how I work comes from those years.",
+  ],
+};
+
+export const statement = {
+  label: "problems",
+  lines: ["I keep noticing problems", "that nobody has really", "said out loud."],
+  body: "Everyone runs into them. Nobody's written them down yet. That's where most of my thinking goes, and it's why the things I build tend to feel a bit different.",
+  aside:
+    "I'll admit it sometimes means I end up solving something that wasn't in the requirements doc. I've made my peace with that.",
+};
+
+export const origin = {
+  label: "how it started",
+  chapters: [
+    {
+      numeral: "06",
+      label: "Karnataka · Football",
+      parts: [
+        "Six years on my school team, two as captain. Then Karnataka: second at under-15, and at under-17, with me as captain, ",
+        { accent: "gold" },
+        ".",
+      ],
+    },
+    {
+      numeral: "2+2",
+      resolve: "4",
+      label: "Class 10 · A calculator",
+      parts: [
+        "It started with the calculator program everyone writes in school. Mine wasn't special. What stayed with me was how much a few lines could do.",
+      ],
+    },
+    {
+      numeral: "200",
+      label: "E-Cell · VIT",
+      parts: [
+        "The team couldn't build what we'd planned for the event. I'd made a rough version myself, just to explain the idea. That's what ran on the day, for ",
+        { accent: "200" },
+        " people.",
+      ],
+    },
+    {
+      numeral: "100K",
+      label: "Easehawk · Moxsend",
+      parts: [
+        "I joined in May 2026 with no industry experience. Now I own the AI that writes a separate email for every lead, up to a hundred thousand in one campaign.",
+      ],
+    },
+  ] as {
+    numeral: string;
+    resolve?: string;
+    label: string;
+    parts: (string | { accent: string })[];
+  }[],
+  turn: "After the E-Cell event, I stopped thinking of tech as something I was studying. It was what I wanted to build my life around.",
+};
+
+export const method = {
+  label: "how I work",
+  headline: ["I take my time before I build.", "Then I don't have to guess."],
+  body: "Say I'm choosing an LLM API. Before I write any integration code, I check what it'll cost us, how fast it responds, and how it does on my own test cases. It's slower at the start. But when something breaks later, I usually already know where it broke and why.",
+  depth:
+    "I learned this from the bottom up. Regression and classification first, then neural networks, then transformers. Then embeddings and vector databases, how a model decides on the next word, how you'd build a small language model yourself. And then the parts around the model that make it usable: memory, caching, how the whole system fits together.",
+  ladder: [
+    "Regression & classification",
+    "Neural networks",
+    "Transformers",
+    "Embeddings & vector DBs",
+    "Next-word prediction",
+    "Small language models",
+    "Memory & caching",
+    "System architecture",
+  ],
+  confidence:
+    "I can build a RAG pipeline or an agent system from scratch, by hand, without leaning on a framework. That's the thing I'm most confident in.",
+  lm: {
+    title: "A very small language model",
+    intro:
+      "Since I keep saying I know how a model picks the next word, here's one. It's a trigram model trained only on the words on this page. Pick a word and watch it guess what comes next.",
+    caption: "trigram model · trained on this page · no API",
+    seeds: ["I", "Football", "When", "the", "every", "a"],
+  },
+};
+
+export const projects: Project[] = [
+  {
+    slug: "moxsend",
+    name: "MOXSEND",
+    meta: "Easehawk Technologies · since May 2026",
+    problem: "Up against Lemlist, HubSpot and Salesforce.",
+    body: [
+      "Moxsend is a cold email platform going up against much bigger companies. Our only real edge is how deep the AI goes. I joined Easehawk in May 2026 with no industry experience, and I own the AI side: writing a personal email for every lead, tracking which ones get replies, and reading the replies that come back so the user knows which leads are worth their time.",
+    ],
+    receipt: { value: "90%+", label: "lower LLM costs" },
+    stack: "Python, FastAPI, LangChain, Qdrant, OpenAI, AWS",
+    long: [
+      "At Moxsend, a single campaign can be anywhere from ten thousand to a hundred thousand leads, and every one of them gets its own email written by AI.",
+      "When you're sending that many, things will go wrong. I plan for that part first. The part I'm proudest of is the bit nobody sees: batch jobs, careful use of every model call, and a cache so we never pay for the same tokens twice. It saved a lot of money, and the people using it noticed.",
+      "I also built the inbox side end to end. It pulls replies from every connected mailbox, works out what each person actually meant, and tells the user which leads are most likely to turn into customers.",
+    ],
+    links: [],
+    visual: "pipeline",
+  },
+  {
+    slug: "scheduler-ai",
+    name: "SCHEDULER AI",
+    meta: "Two-sided booking assistant",
+    problem: "The Sunday salon problem.",
+    body: [
+      "Go to your local salon on a Sunday. It's packed, you don't want to wait, so you leave. The owner was too busy to notice he just lost a customer.",
+      "Scheduler AI works for both of you. It helps you find a place with a free slot, and it acts as a receptionist for the owner. Someone books for 2:15, the owner gets asked if that works and when they'll be free, they say 3:15, and that time updates across the app, with a buffer.",
+    ],
+    receipt: { value: "0", label: "hallucinated bookings" },
+    stack: "LangGraph, FastAPI, Next.js, MongoDB",
+    long: [
+      "The model only does two jobs here: understanding what the person wants, and writing the reply. Searching, ranking and checking that a slot is really free all run as plain code, so the AI can't book a time that doesn't exist.",
+    ],
+    links: [],
+    visual: "salon",
+  },
+  {
+    slug: "ecoloop",
+    name: "ECOLOOP",
+    meta: "Honeywell hackathon",
+    problem: "Buildings that don't know who's inside.",
+    body: [
+      "Most buildings run their AC on a fixed schedule, whether a room is full or empty. EcoLoop uses agents and MCP tools to see how many people are actually in each part of a building, then adjusts temperature, humidity, air filtration and CO₂ for them. People stay comfortable, and the building uses less power.",
+    ],
+    receipt: { value: "33.8%", label: "less electricity" },
+    stack: "Python, MCP, Groq, EnergyPlus, Streamlit",
+    long: [
+      "Any extra sensor a building has can be plugged straight into it. The agent suggests changes, but a separate safety layer checks every value before anything reaches the equipment.",
+    ],
+    links: [],
+    visual: "building",
+  },
+  {
+    slug: "evoke",
+    name: "EVOKE",
+    meta: "Published research",
+    problem: "You can't talk to the people you've lost.",
+    body: [
+      "Evoke started with a simple, sad thought. It learns how a particular person spoke, the words they used and the way they said things, so you can hear something close to them again. I published a research paper on it.",
+    ],
+    receipt: { value: "15.3% → 2.0%", label: "made-up answers" },
+    stack: "AWS serverless, Bedrock, LangChain",
+    long: [
+      "The hardest part was stopping it from inventing opinions the person never had. Consent and data expiry are built into the system itself, not left as a policy.",
+    ],
+    links: [],
+    visual: "voice",
+  },
+];
+
+export const toolkit = {
+  left: {
+    label: "What I build with",
+    items: [
+      ["Python", "shipped"],
+      ["React, Next.js", "shipped"],
+      ["LLM APIs", "shipped"],
+      ["AWS", "shipped"],
+      ["Data pipelines", "shipped"],
+      ["RAG pipelines", "built by hand"],
+      ["Agent systems", "built by hand"],
+      ["FastAPI, Node.js", "used"],
+    ] as [string, string][],
+  },
+  right: {
+    label: "What I'm learning now",
+    body: [
+      "Something I learned on the job: if the data going in and out of an AI pipeline isn't handled well, it doesn't matter how good the model is. It'll fall over in production.",
+      "So right now I'm spending most of my time on backend systems, and learning system design properly.",
+    ],
+  },
+};
+
+export const pitch = {
+  stack: ["Under-17.", "All India.", "Gold."],
+  body: [
+    "Six years on my school team, the last two as captain. Three clubs picked me up along the way, and I got to play for Karnataka at the nationals. At under-15 we finished second. At under-17 I was captain, and we won it.",
+    "Football taught me how to work with a team, how to take a loss and show up again the next day, and how to keep going after something when it isn't going your way. I use all of that at work, more than I expected to.",
+  ],
+  stats: [
+    ["6 yrs", "school team"],
+    ["2 yrs", "captain"],
+    ["3", "clubs"],
+    ["U-15", "national runners-up"],
+    ["U-17", "captain, national champions"],
+  ] as [string, string][],
+  diaryIntro:
+    "Honestly, I don't always know how I juggle college, work and everything else. What I do have is a diary. Everything I need to do goes in it with a deadline, whatever kind of day I'm having, and it gets done before the deadline.",
+  /** Placeholder entries until a photo of the real diary arrives. */
+  diary: [
+    "retry lane for failed sends",
+    "cache repeated lead data",
+    "eval run, reply intent classifier",
+    "buffer logic for booked slots",
+    "paper revisions",
+  ],
+  proud: "I'm proud that I can slowly support myself now. That one means the most to me.",
+};
+
+export const close = {
+  next: [
+    "In the next few years I want to get really good at one thing, AI/ML, and be the person trusted to make the big calls with it, the ones that shape a team or a company. I don't want to only be learning. I want to be leading too.",
+    "I'd also like to have built two or three products that people keep paying for, because they actually fix their problem.",
+  ],
+  headline: "Say hi.",
+  body: "I'm looking for full-time AI/ML roles. Remote suits me best, but I'm happy to be on-site. If you've got a problem nobody's put into words yet, I'd like to hear about it.",
+  cycle: ["Open to full-time AI/ML roles", "Remote preferred · on-site welcome"],
+};
+
+export const highlights = {
+  title: "The 30 second version",
+  lines: [
+    ["Production AI", "Own the AI at Easehawk. Cut LLM costs by 90%+ on a live product."],
+    ["Research", "Published a paper on Evoke. Made-up answers down from 15.3% to 2.0%."],
+    ["Hackathon", "EcoLoop for Honeywell. 33.8% less electricity in simulation."],
+    ["Football", "Captained Karnataka's under-17 side to a national gold."],
+  ] as [string, string][],
+};
+
+export const nav = [
+  { label: "Work", href: "#work" },
+  { label: "Story", href: "#origin" },
+  { label: "Skills", href: "#toolkit" },
+  { label: "Contact", href: "#contact" },
+];
+
+/** Corpus for the in-page trigram model: every sentence on the site. */
+export function corpus(): string {
+  const chunks: string[] = [
+    site.description,
+    hero.descriptor,
+    ...about.paragraphs,
+    statement.lines.join(" "),
+    statement.body,
+    statement.aside,
+    ...origin.chapters.map((c) => c.parts.map((p) => (typeof p === "string" ? p : p.accent)).join("")),
+    origin.turn,
+    method.headline.join(" "),
+    method.body,
+    method.depth,
+    method.confidence,
+    ...projects.flatMap((p) => [...p.body, ...p.long]),
+    ...toolkit.right.body,
+    ...pitch.body,
+    pitch.diaryIntro,
+    pitch.proud,
+    ...close.next,
+    close.body,
+  ];
+  return chunks.join(" ");
+}
