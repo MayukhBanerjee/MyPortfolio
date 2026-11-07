@@ -57,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-phase="loading"
+      data-intro="1"
       className={`${archivo.variable} ${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrains.variable}`}
     >
       <body>

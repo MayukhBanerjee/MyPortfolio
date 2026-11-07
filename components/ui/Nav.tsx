@@ -32,7 +32,7 @@ export default function Nav() {
   return (
     <>
       <header
-        className={`fixed left-0 right-0 top-0 z-[85] flex h-12 items-center justify-between px-[var(--gutter)] text-[var(--paper)] mix-blend-difference transition-opacity duration-500 hover:!opacity-100 ${
+        className={`site-chrome fixed left-0 right-0 top-0 z-[85] flex h-12 items-center justify-between px-[var(--gutter)] text-[var(--paper)] mix-blend-difference transition-opacity duration-500 hover:!opacity-100 ${
           visible ? (dim ? "opacity-60" : "opacity-100") : "pointer-events-none opacity-0"
         }`}
       >

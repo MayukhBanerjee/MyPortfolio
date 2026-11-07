@@ -10,7 +10,8 @@ That writes optimized versions to `public/images/`. Originals are gitignored; on
 
 | File | Used for | Output |
 |---|---|---|
-| `hero.jpg` | The portrait inside the name | `hero-mask.jpg` (shadows lifted), `hero-full.jpg` (full frame) |
+| `hello.jpg` | The smiling photo on the "Hi, I'm" screen | `hello-portrait.webp` |
+| `hero.jpg` | The suit portrait in the hero | `hero-portrait.webp` |
 | `football.jpg` | Off the pitch section | `football.jpg` (black and white) |
 | `diary.jpg` | The diary | `diary.jpg` |
 

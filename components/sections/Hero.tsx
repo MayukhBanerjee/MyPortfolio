@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gsap, MQ, useGSAP } from "@/lib/gsap";
-import { useIsoLayoutEffect } from "@/lib/hooks";
+import { gsap, MQ, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { useImageAvailable, useIsoLayoutEffect } from "@/lib/hooks";
 import { useSite } from "@/components/Providers";
 import { hero, images, site, type HeroCard } from "@/data/portfolio";
 import LiveTime from "@/components/ui/LiveTime";
@@ -10,6 +10,7 @@ import LiveTime from "@/components/ui/LiveTime";
 const SEGMENTS = 14;
 const INTRO_KEY = "mb-intro-seen";
 const CYCLE_MS = 4800;
+const LG = "(min-width: 1024px)";
 
 /**
  * Section 00 + 01 — loader, then the hero.
@@ -25,6 +26,7 @@ export default function Hero() {
   const segRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const ran = useRef(false);
 
+  const hasHello = useImageAvailable(images.hello);
   const [active, setActive] = useState(0);
   const [auto, setAuto] = useState(true);
   const [hovering, setHovering] = useState(false);
@@ -32,32 +34,28 @@ export default function Hero() {
   /* ---------- hide everything before first paint so the entrance can play ---------- */
   useIsoLayoutEffect(() => {
     if (window.matchMedia(MQ.reduced).matches) return;
-    gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop", { autoAlpha: 0 });
+    gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop, .hi-photo, .hi-hello", { autoAlpha: 0 });
+    gsap.set(".hi-name .mask-line > span", { yPercent: 108 });
   }, []);
 
-  /* ---------- the entrance (after the loader, or straight away on a return visit) ---------- */
+  /* ---------- the entrance: only the intro screen. The rest arrives on scroll ---------- */
   const enter = useCallback((delay = 0) => {
     if (window.matchMedia(MQ.reduced).matches) {
-      gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop", { autoAlpha: 1 });
+      gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop, .hi-photo, .hi-hello", { autoAlpha: 1 });
+      gsap.set(".hi-name .mask-line > span", { yPercent: 0 });
       return;
     }
+    const desktop = window.matchMedia(LG).matches;
     const tl = gsap.timeline({ delay, defaults: { ease: "power3.out" } });
     tl.fromTo(
-      ".h-frame",
+      desktop ? ".h-frame" : ".hi-photo",
       { autoAlpha: 1, clipPath: "inset(100% 0% 0% 0%)" },
-      { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "expo.inOut" },
+      { clipPath: "inset(0% 0% 0% 0%)", duration: 1.3, ease: "expo.inOut" },
       0
     )
-      .fromTo(".h-portrait", { scale: 1.18 }, { scale: 1, duration: 1.6, ease: "expo.out" }, 0.1)
-      .fromTo(".h-arch", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 1, ease: "expo.out" }, 0.5)
-      .fromTo(".h-line > span", { autoAlpha: 1, yPercent: 108 }, { yPercent: 0, duration: 0.6, stagger: 0.08 }, 0.2)
-      .fromTo(".h-in", { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05 }, 0.45)
-      .fromTo(
-        ".h-pop",
-        { autoAlpha: 0, scale: 0.92, y: 12 },
-        { autoAlpha: 1, scale: 1, y: 0, duration: 0.55, stagger: 0.1, ease: "back.out(1.6)" },
-        0.75
-      );
+      .fromTo(desktop ? ".h-frame img" : ".hi-photo img", { scale: 1.2 }, { scale: 1, duration: 1.8, ease: "expo.out" }, 0.1)
+      .fromTo(".hi-hello", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.7 }, 0.55)
+      .to(".hi-name .mask-line > span", { yPercent: 0, duration: 0.9, stagger: 0.1, ease: "expo.out" }, 0.65);
   }, []);
 
   /* ---------- Section 00: loader, driven by real loading. First visit per session only ---------- */
@@ -177,19 +175,98 @@ export default function Hero() {
     setActive(i);
   };
 
-  /* ---------- scroll: a little depth as the hero leaves ---------- */
+  /* ---------- scroll: the intro becomes the hero ---------- */
   useGSAP(
     () => {
+      const section = sectionRef.current!;
       const mm = gsap.matchMedia();
-      mm.add(MQ.desktop, () => {
-        const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
-        gsap.fromTo(".h-portrait", { yPercent: -6 }, { yPercent: 2, ease: "none", scrollTrigger: st });
-        gsap.to(".h-arch", { y: -40, ease: "none", scrollTrigger: st });
-        gsap.to(".h-left", { yPercent: -10, opacity: 0.2, ease: "none", scrollTrigger: st });
+
+      // the menu and clock stay hidden while the intro screen is up
+      const flag = (on: boolean) => (document.documentElement.dataset.intro = on ? "1" : "0");
+
+      mm.add(`${LG} and ${MQ.motion}`, () => {
+        const frame = section.querySelector<HTMLElement>(".h-frame")!;
+        const box = section.querySelector<HTMLElement>(".h-photo-box")!;
+        // where the frame sits on the intro screen, as an offset from its place in the hero
+        const intro = () => {
+          const s = section.getBoundingClientRect();
+          const b = box.getBoundingClientRect();
+          const finalH = b.height * 0.85;
+          const finalCx = b.left - s.left + b.width / 2;
+          const finalCy = b.top - s.top + b.height * 0.09 + finalH / 2;
+          const targetH = s.height * 0.8;
+          return { x: s.width / 2 - finalCx, y: s.height * 0.52 - finalCy, scale: targetH / finalH };
+        };
+        let m = intro();
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: "+=130%",
+            pin: true,
+            scrub: 0.7,
+            refreshPriority: 3,
+            invalidateOnRefresh: true,
+            onRefreshInit: () => {
+              m = intro();
+            },
+            onUpdate: (self) => flag(self.progress < 0.18),
+          },
+        });
+        tl.fromTo(
+          frame,
+          { x: () => m.x, y: () => m.y, scale: () => m.scale },
+          { x: 0, y: 0, scale: 1, ease: "power2.inOut", duration: 1 },
+          0.08
+        )
+          .to(".hi-hello", { autoAlpha: 0, y: -24, duration: 0.25, ease: "power2.in" }, 0)
+          .to(".hi-name", { yPercent: -30, autoAlpha: 0, duration: 0.4, ease: "power2.in" }, 0)
+          .to(".h-hello", { autoAlpha: 0, duration: 0.45, ease: "none" }, 0.35)
+          .fromTo(".h-line > span", { autoAlpha: 1, yPercent: 108 }, { yPercent: 0, stagger: 0.06, duration: 0.35 }, 0.72)
+          .fromTo(".h-in", { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, stagger: 0.05, duration: 0.3 }, 0.82)
+          .fromTo(".h-arch", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.95)
+          .fromTo(
+            ".h-pop",
+            { autoAlpha: 0, scale: 0.92, y: 14 },
+            { autoAlpha: 1, scale: 1, y: 0, stagger: 0.08, duration: 0.3 },
+            1
+          )
+          .to({}, { duration: 0.35 });
+        flag(true);
+        return () => flag(false);
       });
+
+      mm.add(`(max-width: 1023px) and ${MQ.motion}`, () => {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top top",
+          end: () => `+=${window.innerHeight * 0.5}`,
+          onToggle: (self) => flag(self.isActive),
+        });
+        flag(true);
+        // the hero content arrives as it scrolls into view
+        gsap
+          .timeline({
+            scrollTrigger: { trigger: ".h-grid", start: "top 75%", once: true },
+            defaults: { ease: "power3.out" },
+          })
+          .fromTo(".h-line > span", { autoAlpha: 1, yPercent: 108 }, { yPercent: 0, stagger: 0.08, duration: 0.6 })
+          .fromTo(".h-in", { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, stagger: 0.05, duration: 0.5 }, 0.2)
+          .fromTo(
+            ".h-frame",
+            { autoAlpha: 1, clipPath: "inset(100% 0% 0% 0%)" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.1, ease: "expo.inOut" },
+            0.3
+          )
+          .fromTo([".h-arch", ".h-pop"], { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, stagger: 0.08, duration: 0.5 }, 0.8);
+        return () => flag(false);
+      });
+
+      mm.add(MQ.reduced, () => flag(false));
       return () => mm.revert();
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [hasHello], revertOnUpdate: true }
   );
 
   const goTo = (target: string) => (e: React.MouseEvent) => {
@@ -204,7 +281,7 @@ export default function Hero() {
       ref={sectionRef}
       id="top"
       aria-label="Introduction"
-      className="on-paper relative min-h-[100svh] overflow-hidden px-[var(--gutter)] pt-20 lg:h-[100svh] lg:min-h-[720px] lg:pt-0"
+      className="on-paper relative overflow-hidden px-[var(--gutter)] lg:h-[100svh] lg:min-h-[720px]"
     >
       {/* ---------- Section 00: loader overlay ---------- */}
       <div ref={overlayRef} className="on-black fixed inset-0 z-[100]" style={{ clipPath: "inset(0 0 0% 0)" }}>
@@ -232,7 +309,33 @@ export default function Hero() {
         </button>
       </div>
 
-      <div className="relative grid h-full grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-6">
+      {/* ---------- the intro screen: just me, saying hello ---------- */}
+      <div className="hi-intro relative flex h-[100svh] flex-col items-center justify-center gap-8 lg:pointer-events-none lg:absolute lg:inset-0 lg:z-20 lg:h-auto lg:gap-0 lg:pt-[38vh] lg:text-white lg:mix-blend-difference">
+        <div className="hi-photo relative aspect-[0.72] h-[54svh] max-w-[86vw] overflow-hidden rounded-t-[999px] bg-[#111] lg:hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={hasHello ? images.hello : images.hero}
+            alt=""
+            className={`absolute inset-0 h-full w-full object-cover ${hasHello ? "object-[50%_30%]" : "object-[50%_18%]"}`}
+          />
+        </div>
+        <div className="text-center">
+          <p className="hi-hello voice text-[clamp(26px,3.2vw,52px)] leading-none">{hero.introHello}</p>
+          <p
+            className="hi-name display mt-3 text-[clamp(56px,15.5vw,260px)] uppercase leading-[0.84] lg:mt-4"
+            style={{ fontWeight: 800, fontStretch: "100%" }}
+          >
+            <span className="mask-line">
+              <span>{site.first}</span>
+            </span>
+            <span className="mask-line">
+              <span>{site.last}</span>
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div className="h-grid relative grid h-full grid-cols-1 gap-10 pt-20 lg:grid-cols-12 lg:gap-6 lg:pt-0">
         {/* ---------- left: words + the pickable cards ---------- */}
         <div className="h-left relative z-10 flex flex-col justify-center lg:col-span-6 lg:pb-10 lg:pt-24">
           <p className="h-in mono text-[var(--mute-dark)]">{hero.hello}</p>
@@ -297,15 +400,15 @@ export default function Hero() {
 
         {/* ---------- right: the portrait on an arch ---------- */}
         <div className="relative pb-8 lg:col-span-6 lg:h-full lg:pb-0">
-          <div className="relative h-[66svh] min-h-[460px] lg:absolute lg:inset-0 lg:h-auto lg:min-h-0">
+          <div className="h-photo-box relative h-[66svh] min-h-[460px] lg:absolute lg:inset-0 lg:h-auto lg:min-h-0">
           {/* thin outline arch, offset behind the photo */}
-          <div
-            aria-hidden="true"
-            className="h-arch absolute bottom-[4%] left-1/2 top-[9%] aspect-[0.72] max-w-[86%] -translate-x-[46%] rounded-t-[999px] border border-[var(--black)]/25 lg:top-[11%]"
-          />
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-[4%] top-[9%] flex justify-center pl-[5%] lg:top-[11%]">
+            <div className="h-arch aspect-[0.72] h-full max-w-[86%] rounded-t-[999px] border border-[var(--black)]/25" />
+          </div>
 
           {/* the photo, framed in an arch */}
-          <div className="h-frame absolute bottom-[6%] left-1/2 top-[7%] aspect-[0.72] max-w-[86%] -translate-x-1/2 overflow-hidden rounded-t-[999px] bg-[#111] lg:top-[9%]">
+          <div className="absolute inset-x-0 bottom-[6%] top-[7%] flex justify-center lg:top-[9%]">
+          <div className="h-frame relative aspect-[0.72] h-full max-w-[86%] overflow-hidden rounded-t-[999px] bg-[#111]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={images.hero}
@@ -315,6 +418,16 @@ export default function Hero() {
               draggable={false}
             />
             <div className="pointer-events-none absolute inset-0 shadow-[inset_0_-120px_120px_-60px_rgba(0,0,0,0.55)]" />
+            {hasHello && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={images.hello}
+                alt=""
+                className="h-hello absolute inset-0 hidden h-full w-full object-cover object-[50%_30%] lg:block"
+                draggable={false}
+              />
+            )}
+          </div>
           </div>
 
           {/* available badge (teal use #1) */}

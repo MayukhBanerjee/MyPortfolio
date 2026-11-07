@@ -31,7 +31,7 @@ export default function MatchClock() {
     <div
       ref={ref}
       aria-hidden="true"
-      className="mono pointer-events-none fixed left-1/2 top-[17px] z-[86] -translate-x-1/2 md:bottom-6 md:left-[var(--gutter)] md:top-auto md:translate-x-0 text-[var(--paper)] opacity-0 mix-blend-difference transition-opacity duration-500"
+      className="site-chrome mono pointer-events-none fixed left-1/2 top-[17px] z-[86] -translate-x-1/2 md:bottom-6 md:left-[var(--gutter)] md:top-auto md:translate-x-0 text-[var(--paper)] opacity-0 mix-blend-difference transition-opacity duration-500"
     >
       <span ref={valRef}>00&apos;</span>
     </div>

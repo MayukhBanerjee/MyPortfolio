@@ -147,6 +147,12 @@
     100% { transform: translate(0, 0); }
   }
 
+  /* nav + match clock stay out of the way on the intro screen */
+  html[data-intro="1"] .site-chrome {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
   /* image placeholder until real photos land in /public/images */
   .photo-fallback {
     background:
