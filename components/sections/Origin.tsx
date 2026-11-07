@@ -10,8 +10,10 @@ import Calculator from "@/components/story/Calculator";
 
 /**
  * Section 03 — my story. Four chapters, in order.
- * Desktop: a sticky index on the left tracks where you are; chapters scroll on the right,
- * each with the story, a line in my own voice, and one thing to look at or play with.
+ * Each chapter is the story in plain words, plus one thing to look at or play with.
+ * The thing never repeats the words: the record shows the numbers, the calculator is a calculator,
+ * the counter is the one number the story leaves out, the list is who I work on.
+ * Desktop: a sticky index on the left tracks where you are.
  */
 export default function Origin() {
   const ref = useRef<HTMLElement>(null);
@@ -58,7 +60,7 @@ export default function Origin() {
           });
         });
 
-        // scoreboard rows land one by one
+        // the record lands row by row
         gsap.from(".sb-row", {
           x: -20,
           opacity: 0,
@@ -68,45 +70,30 @@ export default function Origin() {
           scrollTrigger: { trigger: ".sb-table", start: "top 80%", once: true },
         });
 
-        // the event log plays out, then the live counter climbs
-        const log = gsap.timeline({ scrollTrigger: { trigger: ".lg-table", start: "top 75%", once: true } });
-        log.from(".lg-row", { opacity: 0, y: 10, duration: 0.35, stagger: 0.35, ease: "power2.out" });
+        // the counter climbs to its number
         const counter = { v: 0 };
-        log.fromTo(
-          ".lg-bar",
-          { scaleX: 0 },
-          { scaleX: 1, duration: 1.4, ease: "power2.out", transformOrigin: "0% 50%" },
-          "+=0.1"
-        );
-        log.to(
+        const ct = gsap.timeline({ scrollTrigger: { trigger: ".ct-box", start: "top 78%", once: true } });
+        ct.fromTo(".ct-bar", { scaleX: 0 }, { scaleX: 1, duration: 1.6, ease: "power2.out", transformOrigin: "0% 50%" }, 0).to(
           counter,
           {
-            v: origin.logLive,
-            duration: 1.4,
+            v: origin.counter.value,
+            duration: 1.6,
             ease: "power2.out",
             onUpdate: () => {
-              const el = document.querySelector(".lg-count");
+              const el = document.querySelector(".ct-count");
               if (el) el.textContent = String(Math.round(counter.v));
             },
           },
-          "<"
+          0
         );
 
-        // day one → now
-        gsap.from(".d1-before li", {
+        gsap.from(".pr-row", {
           opacity: 0,
-          y: 10,
-          duration: 0.35,
-          stagger: 0.1,
-          scrollTrigger: { trigger: ".d1-grid", start: "top 78%", once: true },
-        });
-        gsap.from(".d1-now li", {
-          opacity: 0,
-          x: 20,
+          y: 14,
           duration: 0.4,
-          stagger: 0.12,
-          delay: 0.5,
-          scrollTrigger: { trigger: ".d1-grid", start: "top 78%", once: true },
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: ".pr-list", start: "top 80%", once: true },
         });
       });
       return () => mm.revert();
@@ -114,21 +101,18 @@ export default function Origin() {
     { scope: ref }
   );
 
-  const go = (i: number) => {
-    lenis?.scrollTo(`#story-${origin.chapters[i].id}`, { offset: -90, duration: 1.3 });
-  };
+  const go = (target: string, offset = 0) => lenis?.scrollTo(target, { offset, duration: 1.4 });
 
   return (
     <section ref={ref} id="origin" aria-label="My story" className="on-black relative px-[var(--gutter)] pb-24 pt-28">
       <div className="st-head grid grid-cols-1 gap-6 lg:grid-cols-12">
         <SectionLabel label={origin.label} className="lg:col-span-12" />
         <h2
-          className="display mt-6 text-[clamp(52px,8vw,150px)] leading-[0.86] lg:col-span-8"
+          className="display mt-6 text-[clamp(52px,8vw,150px)] leading-[0.86] lg:col-span-12"
           style={{ fontWeight: 800, fontStretch: "92%" }}
         >
           {origin.title}
         </h2>
-        <p className="mono self-end text-[var(--mute)] lg:col-span-4 lg:pb-3 lg:text-right">{origin.intro}</p>
       </div>
 
       <div className="mt-16 grid grid-cols-1 gap-10 lg:mt-24 lg:grid-cols-12">
@@ -138,7 +122,7 @@ export default function Origin() {
             {origin.chapters.map((c, i) => (
               <li key={c.id}>
                 <button
-                  onClick={() => go(i)}
+                  onClick={() => go(`#story-${c.id}`, -90)}
                   className={`grid w-full grid-cols-[2.2rem_1fr] items-baseline border-t py-4 text-left transition-colors duration-300 ${
                     i === active
                       ? "border-[var(--paper)] text-[var(--paper)]"
@@ -155,16 +139,13 @@ export default function Origin() {
                 </button>
               </li>
             ))}
-            <li className="mono mt-6 text-[10px] text-[var(--mute)]">
-              {String(active + 1).padStart(2, "0")} / {String(origin.chapters.length).padStart(2, "0")}
-            </li>
           </ol>
         </nav>
 
         {/* chapters */}
         <div className="lg:col-span-9">
           {origin.chapters.map((c, i) => (
-            <Chapter key={c.id} chapter={c} index={i} />
+            <Chapter key={c.id} chapter={c} index={i} onGo={go} />
           ))}
         </div>
       </div>
@@ -172,11 +153,19 @@ export default function Origin() {
   );
 }
 
-function Chapter({ chapter: c, index }: { chapter: StoryChapter; index: number }) {
+function Chapter({
+  chapter: c,
+  index,
+  onGo,
+}: {
+  chapter: StoryChapter;
+  index: number;
+  onGo: (target: string, offset?: number) => void;
+}) {
   return (
     <article
       id={`story-${c.id}`}
-      className="st-chapter grid grid-cols-1 gap-10 border-t border-[var(--line-dark)] py-16 lg:min-h-[80vh] lg:grid-cols-9 lg:gap-8 lg:py-24 lg:last:min-h-0"
+      className="st-chapter grid grid-cols-1 gap-10 border-t border-[var(--line-dark)] py-16 lg:min-h-[78vh] lg:grid-cols-9 lg:gap-8 lg:py-24 lg:last:min-h-0"
     >
       <div className="lg:col-span-5">
         <p className="st-in mono text-[var(--mute)]">
@@ -190,31 +179,29 @@ function Chapter({ chapter: c, index }: { chapter: StoryChapter; index: number }
             <span>{c.title}</span>
           </span>
         </h3>
-        <p className="st-in voice mt-8 max-w-[22em] text-[clamp(22px,2vw,32px)] leading-[1.2] text-[var(--paper)]">
-          {c.quote}
-        </p>
-        {c.body.map((b, k) => (
-          <p key={k} className="st-in body-copy mt-6 text-[var(--paper)]/70">
-            {b}
+        <p className="st-in mt-8 max-w-[26em] text-[clamp(19px,1.7vw,26px)] leading-[1.4] text-[var(--paper)]/90">{c.lead}</p>
+        {c.note && (
+          <p className="st-in voice mt-7 max-w-[24em] text-[clamp(20px,1.8vw,28px)] leading-[1.25] text-[var(--paper)]/60">
+            {c.note}
           </p>
-        ))}
+        )}
       </div>
 
       <div className="st-in flex items-start lg:col-span-4 lg:items-center lg:justify-end">
-        <Module kind={c.module} />
+        <Module kind={c.module} onGo={onGo} />
       </div>
     </article>
   );
 }
 
-function Module({ kind }: { kind: StoryChapter["module"] }) {
+function Module({ kind, onGo }: { kind: StoryChapter["module"]; onGo: (target: string, offset?: number) => void }) {
   if (kind === "scoreboard") return <Scoreboard />;
   if (kind === "calculator") return <Calculator caption={origin.calculatorCaption} />;
-  if (kind === "log") return <EventLog />;
-  return <DayOne />;
+  if (kind === "counter") return <Counter />;
+  return <Products onGo={onGo} />;
 }
 
-/* ---------- 01: the scoreboard (+ the football photo, once it exists) ---------- */
+/* ---------- 01: the record (the numbers the story leaves out) ---------- */
 function Scoreboard() {
   const hasPhoto = useImageAvailable(images.football);
   return (
@@ -251,62 +238,54 @@ function Scoreboard() {
   );
 }
 
-/* ---------- 03: the day of the event, as a log ---------- */
-function EventLog() {
+/* ---------- 03: the one number the story leaves out ---------- */
+function Counter() {
   return (
-    <div className="lg-table w-full max-w-[26rem] border border-[var(--line-dark)] p-5">
-      <p className="mono mb-4 text-[10px] text-[var(--mute)]">[ e-cell · event day ]</p>
-      <ol>
-        {origin.log.map(([k, v], i) => (
-          <li key={k} className="lg-row grid grid-cols-[5.5rem_1fr] gap-3 border-t border-[var(--line-dark)] py-3">
-            <span className="mono text-[10px] text-[var(--mute)]">
-              {String(i + 1).padStart(2, "0")} {k}
-            </span>
-            <span className="text-[15px] leading-snug text-[var(--paper)]/85">{v}</span>
-          </li>
-        ))}
-        <li className="lg-row grid grid-cols-[5.5rem_1fr] items-center gap-3 border-t border-[var(--line-dark)] pt-4">
-          <span className="mono text-[10px] text-[var(--mute)]">05 Live</span>
-          <span className="flex items-center gap-4">
-            <span className="relative h-[6px] flex-1 bg-[var(--line-dark)]">
-              <span className="lg-bar absolute inset-0 block origin-left bg-[var(--paper)]" />
-            </span>
-            {/* teal use #3 */}
-            <span className="display teal text-[40px] leading-none" style={{ fontWeight: 800 }}>
-              <span className="lg-count">{origin.logLive}</span>
-            </span>
-          </span>
-        </li>
-      </ol>
-      <p className="mono mt-3 text-right text-[10px] text-[var(--mute)]">people used it live</p>
+    <div className="ct-box w-full max-w-[26rem] border border-[var(--line-dark)] p-6">
+      <p className="mono mb-5 text-[10px] text-[var(--mute)]">[ event day ]</p>
+      {/* teal use #3 */}
+      <p className="display teal leading-[0.85]" style={{ fontWeight: 800, fontStretch: "90%", fontSize: "clamp(88px,9vw,150px)" }}>
+        <span className="ct-count">{origin.counter.value}</span>
+      </p>
+      <span className="relative mt-6 block h-[6px] bg-[var(--line-dark)]">
+        <span className="ct-bar absolute inset-0 block origin-left bg-[var(--paper)]" />
+      </span>
+      <p className="mono mt-3 text-[10px] text-[var(--mute)]">{origin.counter.label}</p>
     </div>
   );
 }
 
-/* ---------- 04: day one vs now ---------- */
-function DayOne() {
+/* ---------- 04: the products (the story says "live products"; this says which) ---------- */
+function Products({ onGo }: { onGo: (target: string, offset?: number) => void }) {
   return (
-    <div className="d1-grid grid w-full max-w-[28rem] grid-cols-2 border border-[var(--line-dark)]">
-      <div className="d1-before border-r border-[var(--line-dark)] p-5">
-        <p className="mono mb-4 text-[10px] text-[var(--mute)]">Day one</p>
-        <ul className="space-y-3">
-          {origin.dayOne.before.map((t) => (
-            <li key={t} className="text-[15px] leading-snug text-[var(--paper)]/55">
-              {t}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="d1-now bg-[var(--paper)] p-5 text-[var(--black)]">
-        <p className="mono mb-4 text-[10px] opacity-60">Now</p>
-        <ul className="space-y-3">
-          {origin.dayOne.now.map((t) => (
-            <li key={t} className="text-[15px] leading-snug" style={{ fontWeight: 500 }}>
-              {t}
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div className="w-full max-w-[26rem]">
+      <p className="mono mb-3 text-[10px] text-[var(--mute)]">[ {origin.products.label} ]</p>
+      <ul className="pr-list">
+        {origin.products.items.map(([name, what, href]) => (
+          <li key={name} className="pr-row border-t border-[var(--line-dark)] last:border-b">
+            {href ? (
+              <button
+                onClick={() => onGo(href, 0)}
+                className="group flex w-full items-baseline justify-between gap-4 py-4 text-left"
+              >
+                <span className="text-[19px]" style={{ fontWeight: 600 }}>
+                  {name}
+                </span>
+                <span className="mono text-[var(--mute)] transition-colors group-hover:text-[var(--paper)]">
+                  {what} →
+                </span>
+              </button>
+            ) : (
+              <div className="flex items-baseline justify-between gap-4 py-4">
+                <span className="text-[19px]" style={{ fontWeight: 600 }}>
+                  {name}
+                </span>
+                <span className="mono text-[var(--mute)]">{what}</span>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

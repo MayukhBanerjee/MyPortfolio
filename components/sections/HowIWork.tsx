@@ -53,15 +53,15 @@ export default function HowIWork() {
         <div className="lg:col-span-7">
           <MaskLines
             lines={method.headline}
-            className="display text-[clamp(38px,5.4vw,96px)] leading-[0.92]"
+            className="display text-[clamp(34px,4.3vw,78px)] leading-[0.94]"
             style={{ fontWeight: 800 }}
           />
           <p className="hw-fade body-copy mt-10 text-[var(--black)]/85">{method.body}</p>
-          <p className="hw-fade body-copy mt-6 text-[var(--black)]/85">{method.depth}</p>
-          <p className="hw-fade voice mt-10 max-w-[26em] text-[clamp(22px,2vw,32px)] leading-[1.2]">{method.confidence}</p>
         </div>
 
-        <ol className="ladder self-end lg:col-span-4 lg:col-start-9">
+        <div className="self-end lg:col-span-4 lg:col-start-9">
+        <p className="hw-fade mono mb-3 text-[var(--mute-dark)]">[ {method.ladderLabel} ]</p>
+        <ol className="ladder">
           {method.ladder.map((step, i) => (
             <li key={step} className="ladder-row relative py-3">
               <span className="ladder-rule absolute left-0 right-0 top-0 block h-px bg-[var(--black)]/25" />
@@ -72,6 +72,7 @@ export default function HowIWork() {
             </li>
           ))}
         </ol>
+        </div>
       </div>
 
       <div className="mt-28">

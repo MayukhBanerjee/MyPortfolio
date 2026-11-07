@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import Nav from "@/components/ui/Nav";
 import MatchClock from "@/components/ui/MatchClock";
-import HighlightsSheet from "@/components/ui/HighlightsSheet";
 import { preload } from "react-dom";
 import { images, site } from "@/data/portfolio";
 
@@ -71,7 +70,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Nav />
           {children}
           <MatchClock />
-          <HighlightsSheet />
         </Providers>
         <div className="grain" aria-hidden="true" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

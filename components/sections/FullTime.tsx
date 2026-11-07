@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { gsap, MQ, useGSAP } from "@/lib/gsap";
 import { useInView, useNearViewport } from "@/lib/hooks";
 import { close, site } from "@/data/portfolio";
@@ -18,14 +18,6 @@ export default function FullTime() {
   const near = useNearViewport(stageRef);
   const inView = useInView(stageRef);
   const [copied, setCopied] = useState(false);
-  const [cycle, setCycle] = useState(0);
-
-  const cycleLines = [...close.cycle, `${site.city} · `];
-
-  useEffect(() => {
-    const id = setInterval(() => setCycle((c) => (c + 1) % cycleLines.length), 3000);
-    return () => clearInterval(id);
-  }, [cycleLines.length]);
 
   useGSAP(
     () => {
@@ -128,10 +120,8 @@ export default function FullTime() {
         <span>
           {site.name} © {new Date().getFullYear()} · {site.classOf}
         </span>
-        <span className="relative h-[1.5em] overflow-hidden text-[var(--paper)]" aria-live="off">
-          <span key={cycle} className="ft-cycle block">
-            [ {cycle === cycleLines.length - 1 ? <>{cycleLines[cycle]}<LiveTime /></> : cycleLines[cycle]} ]
-          </span>
+        <span className="text-[var(--paper)]">
+          {site.city} · <LiveTime />
         </span>
         <span>Designed and built by me · 90+2&apos;</span>
       </footer>

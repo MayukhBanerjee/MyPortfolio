@@ -5,7 +5,7 @@ import { nav, site } from "@/data/portfolio";
 import { useSite } from "@/components/Providers";
 
 export default function Nav() {
-  const { phase, lenis, setHighlightsOpen } = useSite();
+  const { phase, lenis } = useSite();
   const [dim, setDim] = useState(false);
   const [open, setOpen] = useState(false);
   const last = useRef(0);
@@ -50,12 +50,8 @@ export default function Nav() {
               [ {n.label} ]
             </a>
           ))}
-          <button onClick={() => setHighlightsOpen(true)} className="mono transition-opacity hover:opacity-60">
-            [ 30 sec ]
-          </button>
         </nav>
         <div className="mono flex items-center gap-5 md:hidden">
-          <button onClick={() => setHighlightsOpen(true)}>[ 30 sec ]</button>
           <button onClick={() => setOpen(true)} aria-expanded={open}>
             Menu
           </button>

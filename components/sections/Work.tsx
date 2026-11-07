@@ -107,13 +107,9 @@ export default function Work() {
                 <span className="text-right">{p.meta}</span>
               </p>
               <p className="wk-in mt-8 text-[clamp(24px,2.4vw,38px)] leading-[1.08]" style={{ fontWeight: 600 }}>
-                {p.problem}
+                {p.headline}
               </p>
-              {p.body.map((b, k) => (
-                <p key={k} className="wk-in body-copy mt-5 text-[var(--black)]/80">
-                  {b}
-                </p>
-              ))}
+              <p className="wk-in body-copy mt-5 text-[var(--black)]/80">{p.summary}</p>
 
               <div className="wk-in mt-8 flex items-end justify-between gap-6 border-t border-[var(--line-light)] pt-5">
                 <div>

@@ -10,8 +10,6 @@ type Ctx = {
   phase: Phase;
   setPhase: (p: Phase) => void;
   lenis: Lenis | null;
-  highlightsOpen: boolean;
-  setHighlightsOpen: (v: boolean) => void;
 };
 
 const SiteCtx = createContext<Ctx | null>(null);
@@ -25,7 +23,6 @@ export function useSite(): Ctx {
 export function Providers({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [lenis, setLenis] = useState<Lenis | null>(null);
-  const [highlightsOpen, setHighlightsOpen] = useState(false);
 
   useEffect(() => {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -48,12 +45,12 @@ export function Providers({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Lock scroll during the intro and while the highlights sheet is open.
+  // Lock scroll during the intro.
   useEffect(() => {
     if (!lenis) return;
-    if (phase !== "done" || highlightsOpen) lenis.stop();
+    if (phase !== "done") lenis.stop();
     else lenis.start();
-  }, [phase, lenis, highlightsOpen]);
+  }, [phase, lenis]);
 
   useEffect(() => {
     document.documentElement.dataset.phase = phase;
@@ -65,7 +62,7 @@ export function Providers({ children }: { children: ReactNode }) {
   }, [phase]);
 
   return (
-    <SiteCtx.Provider value={{ phase, setPhase, lenis, highlightsOpen, setHighlightsOpen }}>
+    <SiteCtx.Provider value={{ phase, setPhase, lenis }}>
       {children}
     </SiteCtx.Provider>
   );

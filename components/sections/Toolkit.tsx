@@ -54,17 +54,12 @@ export default function Toolkit() {
         </div>
 
         <div className="tk-right lg:col-span-5 lg:col-start-8">
-          <p className="mono text-[var(--mute)]">[ {toolkit.right.label} ]</p>
-          {toolkit.right.body.map((p, i) => (
-            <p
-              key={i}
-              className={`mt-8 leading-[1.35] ${i === 0 ? "text-[clamp(24px,2.3vw,36px)]" : "body-copy text-[var(--paper)]/75"}`}
-              style={i === 0 ? { fontWeight: 500 } : undefined}
-            >
-              {p}
-            </p>
-          ))}
-          <p className="mono mt-10 text-[var(--paper)]">● currently learning: production backend, system design</p>
+          <p className="mono text-[var(--mute)]">[ {toolkit.right.strongLabel} ]</p>
+          <p className="mt-6 text-[clamp(24px,2.3vw,36px)] leading-[1.3]" style={{ fontWeight: 500 }}>
+            {toolkit.right.strong}
+          </p>
+          <p className="mono mt-14 text-[var(--mute)]">[ {toolkit.right.learnLabel} ]</p>
+          <p className="body-copy mt-6 text-[var(--paper)]/75">{toolkit.right.learn}</p>
         </div>
       </div>
     </section>

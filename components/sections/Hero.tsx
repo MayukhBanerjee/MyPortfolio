@@ -635,7 +635,7 @@ export default function Hero() {
       {/* ============ screen 2: the introduction ============ */}
       <div className="layer-b relative px-[var(--gutter)] pb-20 pt-14 lg:pointer-events-none lg:absolute lg:inset-0 lg:z-[3] lg:grid lg:grid-cols-12 lg:items-center lg:gap-6 lg:pb-0 lg:pt-0">
         <div className="b-col flex flex-col justify-center lg:pointer-events-auto lg:col-span-6 lg:pt-6">
-          <p className="b-in mono text-[var(--mute-dark)]">{hero.hello}</p>
+          <p className="b-in mono text-[var(--mute-dark)]">{hero.kicker}</p>
           <p
             className="display mt-5 text-[clamp(36px,min(4.7vw,7.4svh),86px)] leading-[0.94]"
             style={{ fontWeight: 800, fontStretch: "100%" }}

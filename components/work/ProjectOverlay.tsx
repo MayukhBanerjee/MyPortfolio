@@ -46,8 +46,12 @@ export default function ProjectOverlay({ project, onClose }: { project: Project;
       </div>
 
       <h2
-        className="po-in display mt-[8vh] whitespace-nowrap text-[clamp(56px,13vw,240px)]"
-        style={{ fontStretch: "110%" }}
+        className="po-in display mt-[8vh] whitespace-nowrap"
+        style={{
+          // long names get a smaller size so they never run off the screen
+          fontSize: `min(${Math.min(13, 106 / project.name.length).toFixed(2)}vw, 240px)`,
+          fontStretch: project.name.length > 8 ? "100%" : "110%",
+        }}
       >
         {project.name}
       </h2>
@@ -55,7 +59,7 @@ export default function ProjectOverlay({ project, onClose }: { project: Project;
       <div className="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <p className="po-in text-[clamp(22px,2.2vw,34px)] leading-[1.15]" style={{ fontWeight: 600 }}>
-            {project.problem}
+            {project.headline}
           </p>
           <div className="po-in mt-10">
             {/* teal use #4 — Moxsend's 90%. Other receipts stay paper-white. */}
@@ -69,7 +73,8 @@ export default function ProjectOverlay({ project, onClose }: { project: Project;
           </div>
         </div>
         <div className="lg:col-span-6 lg:col-start-7">
-          {[...project.body, ...project.long].map((p, i) => (
+          <p className="po-in body-copy mb-6 text-[var(--paper)]/85">{project.summary}</p>
+          {project.detail.map((p, i) => (
             <p key={i} className="po-in body-copy mb-6 text-[var(--paper)]/85">
               {p}
             </p>

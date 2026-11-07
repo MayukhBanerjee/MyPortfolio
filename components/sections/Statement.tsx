@@ -154,12 +154,19 @@ export default function Statement() {
               <span className="mono mb-2 block text-[10px]">{String(i + 1).padStart(2, "0")}</span>
               <span className="voice block text-[clamp(20px,1.55vw,25px)] leading-[1.2]">{n.text}</span>
               <span className="sn-tag mono mt-3 block text-[var(--black)]">
-                {n.href ? (
+                {n.href.startsWith("http") ? (
+                  <a
+                    href={n.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="border-b border-current pb-px hover:opacity-60"
+                  >
+                    → became {n.became} ↗
+                  </a>
+                ) : (
                   <a href={n.href} onClick={go(n.href)} className="border-b border-current pb-px hover:opacity-60">
                     → became {n.became}
                   </a>
-                ) : (
-                  <>→ became {n.became}</>
                 )}
               </span>
             </li>
