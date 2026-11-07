@@ -2,8 +2,7 @@
  * Turns originals in /photos into web-ready files in /public/images.
  * Run: npm run photos
  *
- * hero.jpg  -> hero-mask.jpg  (B&W, shadows lifted so letters never vanish into the night sky)
- *           -> hero-full.jpg  (B&W, deep contrast, for the full frame at the end of the scroll dive)
+ * hero-cutout.png -> hero-cutout.webp (B&W portrait, transparent background)
  * football.jpg -> football.jpg (B&W, resized)
  * diary.jpg    -> diary.jpg    (resized, colour kept)
  */
@@ -19,24 +18,17 @@ const jpeg = { quality: 80, mozjpeg: true, progressive: true };
 const done = [];
 
 async function hero() {
-  const src = join(SRC, "hero.jpg");
+  // hero-cutout.png is the portrait with the background removed (transparent PNG)
+  const src = join(SRC, "hero-cutout.png");
   if (!existsSync(src)) return;
-  // two passes: sharp applies normalise late in its pipeline, which would undo the lift below
-  const grey = await sharp(src)
-    .rotate()
-    .resize({ width: 2400, withoutEnlargement: true })
-    .grayscale()
-    .normalise()
-    .toColourspace("b-w")
-    .png()
-    .toBuffer();
-  const base = () => sharp(grey);
-
-  // inside the letters: lift the blacks to ~#3c3c3c so every letter stays readable on the black page
-  await base().linear(0.76, 60).sharpen({ sigma: 0.6 }).jpeg(jpeg).toFile(join(OUT, "hero-mask.jpg"));
-  // the full frame: deeper, more graphic
-  await base().linear(1.18, -14).sharpen({ sigma: 0.6 }).jpeg(jpeg).toFile(join(OUT, "hero-full.jpg"));
-  done.push("hero-mask.jpg", "hero-full.jpg");
+  const resized = await sharp(src).resize({ height: 1800, withoutEnlargement: true }).png().toBuffer();
+  const alpha = await sharp(resized).extractChannel(3).toBuffer();
+  const grey = await sharp(resized).removeAlpha().grayscale().linear(1.12, -10).toBuffer();
+  await sharp(grey)
+    .joinChannel(alpha)
+    .webp({ quality: 84, alphaQuality: 90 })
+    .toFile(join(OUT, "hero-cutout.webp"));
+  done.push("hero-cutout.webp");
 }
 
 async function simple(name, { grey, width }) {

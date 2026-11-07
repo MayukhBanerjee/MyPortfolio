@@ -12,8 +12,8 @@ import { useInView, useReducedMotion } from "@/lib/hooks";
 const ZONES = [
   { name: "Floor A", x: 10, y: 10, w: 185, h: 120 },
   { name: "Floor B", x: 205, y: 10, w: 185, h: 120 },
-  { name: "Meeting", x: 10, y: 140, w: 120, h: 110 },
-  { name: "Lab", x: 140, y: 140, w: 250, h: 110 },
+  { name: "Meeting", x: 10, y: 140, w: 175, h: 110 },
+  { name: "Lab", x: 195, y: 140, w: 195, h: 110 },
 ];
 const PEOPLE = 14;
 

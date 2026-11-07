@@ -1,156 +1,76 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { gsap, MQ, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { useImageAvailable, useIsoLayoutEffect } from "@/lib/hooks";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { gsap, MQ, useGSAP } from "@/lib/gsap";
+import { useIsoLayoutEffect } from "@/lib/hooks";
 import { useSite } from "@/components/Providers";
-import { hero, images, site } from "@/data/portfolio";
+import { hero, images, site, type HeroCard } from "@/data/portfolio";
 import LiveTime from "@/components/ui/LiveTime";
 
-type Line = { text: string; fs: number; y: number; xs: number[] };
-type Rect = { x: number; y: number; w: number; h: number };
-type Layout = { w: number; h: number; wdth: number; lines: [Line, Line]; focal: { x: number; y: number }; img: Rect };
-
-const fontStyle = (wdth: number) =>
-  ({
-    fontFamily: "var(--font-archivo), sans-serif",
-    fontWeight: 900,
-    fontStretch: `${wdth}%`,
-    fontVariationSettings: `'wdth' ${wdth}`,
-    letterSpacing: "-0.01em",
-  }) as const;
-const wdthFor = (w: number) => (w < 520 ? 68 : w < 900 ? 95 : 125);
-
-const CAP = 0.7; // Archivo cap-height / em
 const SEGMENTS = 14;
 const INTRO_KEY = "mb-intro-seen";
+const CYCLE_MS = 4800;
 
 /**
- * Section 01 — Hero, with Section 00 (the loader) built in.
- * The name is the mask: the portrait shows only through MAYUKH / BANERJEE.
- * The photo is placed so the face sits behind the name, centred on the Y.
- * On scroll the camera falls through the stem of the Y, into the face, until the photo fills the frame.
+ * Section 00 + 01 — loader, then the hero.
+ * Left: who I am, in plain words. Right: the portrait on a soft arch.
+ * The proof cards are pickable: choose one and the dark card beside the portrait shows its detail.
+ * Until someone picks, they cycle on their own (with a progress line on the active card).
  */
 export default function Hero() {
-  const { phase, setPhase } = useSite();
-  const hasPhoto = useImageAvailable(images.hero);
-
+  const { phase, setPhase, lenis } = useSite();
   const sectionRef = useRef<HTMLElement>(null);
-  const measureRefs = useRef<(SVGTextElement | null)[]>([]);
-  const zoomRef = useRef<SVGGElement>(null);
-  const imageRef = useRef<SVGGElement>(null);
-  const fullRef = useRef<SVGGElement>(null);
-  const uiRef = useRef<HTMLDivElement>(null);
-  const loaderRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
   const segRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const introRan = useRef(false);
+  const ran = useRef(false);
 
-  const [layout, setLayout] = useState<Layout | null>(null);
+  const [active, setActive] = useState(0);
+  const [auto, setAuto] = useState(true);
+  const [hovering, setHovering] = useState(false);
 
-  /* ---------- measure + fit the name to the viewport ---------- */
+  /* ---------- hide everything before first paint so the entrance can play ---------- */
   useIsoLayoutEffect(() => {
-    let raf = 0;
-    const compute = () => {
-      const sec = sectionRef.current;
-      const m1 = measureRefs.current[0];
-      const m2 = measureRefs.current[1];
-      if (!sec || !m1 || !m2) return;
-      const w = sec.clientWidth;
-      const h = sec.clientHeight;
-      const wdth = wdthFor(w);
-      const st = fontStyle(wdth);
-      for (const el of [m1, m2]) {
-        el.style.fontStretch = st.fontStretch;
-        el.style.fontVariationSettings = st.fontVariationSettings;
-      }
-      const g = Math.max(16, Math.min(48, w * 0.032));
-      const avail = w - g * 2;
-
-      const fit = (el: SVGTextElement) => {
-        el.setAttribute("font-size", "100");
-        const len = el.getComputedTextLength() || 1;
-        const fs = (avail / len) * 100;
-        el.setAttribute("font-size", String(fs));
-        const xs: number[] = [];
-        const n = el.getNumberOfChars();
-        for (let i = 0; i < n; i++) xs.push(el.getStartPositionOfChar(i).x);
-        return { fs, xs };
-      };
-      const a = fit(m1);
-      const b = fit(m2);
-
-      const gap = Math.max(10, a.fs * 0.1);
-      const block = a.fs * CAP + gap + b.fs * CAP;
-      const top = Math.max(h * 0.12, (h - block) / 2 - h * 0.02);
-      const y1 = top + a.fs * CAP;
-      const y2 = y1 + gap + b.fs * CAP;
-
-      // focal point: the stem of the Y in MAYUKH (index 2). Solid ink, and it sits over the face.
-      const ext = m1.getExtentOfChar(2);
-      const focal = { x: g + ext.x + ext.width / 2, y: y1 - a.fs * CAP * 0.22 };
-
-      // place the photo: cover the viewport, then slide it so the face lands behind the Y
-      const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-      const dispW = Math.max(w, h / images.heroAspect) * images.heroZoom;
-      const dispH = dispW * images.heroAspect;
-      const img = {
-        w: dispW,
-        h: dispH,
-        x: clamp(focal.x - images.heroFocus.x * dispW, w - dispW, 0),
-        y: clamp(top + block / 2 - images.heroFocus.y * dispH, h - dispH, 0),
-      };
-
-      setLayout({
-        w,
-        h,
-        wdth,
-        lines: [
-          { text: site.first, fs: a.fs, y: y1, xs: a.xs.map((x) => x + g) },
-          { text: site.last, fs: b.fs, y: y2, xs: b.xs.map((x) => x + g) },
-        ],
-        focal,
-        img,
-      });
-    };
-    const schedule = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(compute);
-    };
-    compute();
-    document.fonts?.ready.then(schedule);
-    const ro = new ResizeObserver(schedule);
-    if (sectionRef.current) ro.observe(sectionRef.current);
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
+    if (window.matchMedia(MQ.reduced).matches) return;
+    gsap.set(".h-in, .h-line > span, .h-portrait, .h-arch, .h-pop", { autoAlpha: 0 });
   }, []);
 
-  /* ---------- hide letters before first paint if the intro will play ---------- */
-  useIsoLayoutEffect(() => {
-    if (!layout || introRan.current) return;
-    if (phase === "loading") {
-      gsap.set(".hero-letter", { opacity: 0 });
-      gsap.set(uiRef.current, { opacity: 0 });
+  /* ---------- the entrance (after the loader, or straight away on a return visit) ---------- */
+  const enter = useCallback((delay = 0) => {
+    if (window.matchMedia(MQ.reduced).matches) {
+      gsap.set(".h-in, .h-line > span, .h-portrait, .h-arch, .h-pop", { autoAlpha: 1, clearProps: "transform" });
+      return;
     }
-  }, [layout, phase]);
+    const tl = gsap.timeline({ delay, defaults: { ease: "power3.out" } });
+    tl.fromTo(
+      ".h-arch",
+      { autoAlpha: 1, scaleY: 0, transformOrigin: "50% 100%" },
+      { scaleY: 1, duration: 0.9, ease: "expo.out" },
+      0
+    )
+      .fromTo(".h-portrait", { autoAlpha: 0, y: 70 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: "expo.out" }, 0.15)
+      .fromTo(".h-line > span", { autoAlpha: 1, yPercent: 108 }, { yPercent: 0, duration: 0.6, stagger: 0.08 }, 0.2)
+      .fromTo(".h-in", { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05 }, 0.45)
+      .fromTo(
+        ".h-pop",
+        { autoAlpha: 0, scale: 0.92, y: 12 },
+        { autoAlpha: 1, scale: 1, y: 0, duration: 0.55, stagger: 0.1, ease: "back.out(1.6)" },
+        0.75
+      );
+  }, []);
 
-  /* ---------- Section 00: loader driven by real loading ---------- */
+  /* ---------- Section 00: loader, driven by real loading. First visit per session only ---------- */
   useEffect(() => {
-    if (!layout || introRan.current || hasPhoto === null) return;
-    introRan.current = true;
-
+    if (ran.current) return;
+    ran.current = true;
+    const overlay = overlayRef.current;
     const reduced = window.matchMedia(MQ.reduced).matches;
     let seen = false;
     try {
       seen = sessionStorage.getItem(INTRO_KEY) === "1";
     } catch {}
 
-    const finish = () => {
-      gsap.set(".hero-letter", { opacity: 1, y: 0, scaleY: 1 });
-      gsap.to(uiRef.current, { opacity: 1, duration: 0.6, ease: "power2.out" });
-      gsap.to(loaderRef.current, { autoAlpha: 0, duration: 0.3 });
+    const done = () => {
       try {
         sessionStorage.setItem(INTRO_KEY, "1");
       } catch {}
@@ -158,48 +78,30 @@ export default function Hero() {
     };
 
     if (seen || reduced) {
-      gsap.set(loaderRef.current, { autoAlpha: 0 });
-      finish();
+      gsap.set(overlay, { autoAlpha: 0 });
+      enter(0.05);
+      done();
       return;
     }
 
     const counter = { v: 0 };
     let target = 0;
-    let revealed = false;
+    let finished = false;
     const render = () => {
       if (counterRef.current) counterRef.current.textContent = String(Math.round(counter.v)).padStart(2, "0");
     };
-    const bump = (n: number) => {
-      target = Math.min(100, target + n);
-      gsap.to(counter, {
-        v: target,
-        duration: 0.45,
-        ease: "power1.out",
-        onUpdate: render,
-        onComplete: () => counter.v >= 100 && reveal(),
-      });
-    };
-
-    const lineTl = gsap.fromTo(
-      ".loader-line",
-      { scaleX: 0 },
-      { scaleX: 1, duration: 0.7, ease: "expo.inOut", transformOrigin: "0% 50%" }
-    );
-
-    const reveal = () => {
-      if (revealed) return;
-      revealed = true;
-      const tl = gsap.timeline({ onComplete: finish });
-      // the line shatters
-      tl.set(".loader-line", { opacity: 0 });
-      tl.set(segRefs.current, { opacity: 1 });
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      const tl = gsap.timeline({ onComplete: done });
+      tl.set(".loader-line", { opacity: 0 }).set(segRefs.current, { opacity: 1 });
       segRefs.current.forEach((s) => {
         if (!s) return;
         tl.to(
           s,
           {
             x: gsap.utils.random(-140, 140),
-            y: gsap.utils.random(-220, 220),
+            y: gsap.utils.random(-200, 200),
             rotation: gsap.utils.random(-70, 70),
             opacity: 0,
             duration: gsap.utils.random(0.35, 0.6),
@@ -208,20 +110,29 @@ export default function Hero() {
           0
         );
       });
-      tl.to(".loader-count", { opacity: 0, duration: 0.15 }, 0);
-      // the letters slam in: one frame each, no easing
-      document.querySelectorAll<SVGTextElement>(".hero-letter").forEach((el, i) => {
-        tl.set(el, { opacity: 1 }, 0.04 + i * 0.045);
+      tl.to(".loader-count", { opacity: 0, duration: 0.15 }, 0)
+        .to(overlay, { clipPath: "inset(0 0 100% 0)", duration: 0.8, ease: "expo.inOut" }, 0.25)
+        .set(overlay, { autoAlpha: 0 });
+      enter(0.55);
+    };
+    const bump = (n: number) => {
+      target = Math.min(100, target + n);
+      gsap.to(counter, {
+        v: target,
+        duration: 0.45,
+        ease: "power1.out",
+        onUpdate: render,
+        onComplete: () => {
+          if (counter.v >= 100) finish();
+        },
       });
-      tl.fromTo(zoomRef.current, { x: 0 }, { x: 3, duration: 0.05, repeat: 3, yoyo: true, ease: "none" }, ">-0.02");
-      tl.set(zoomRef.current, { x: 0 });
     };
 
-    // real signals
+    gsap.fromTo(".loader-line", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.inOut", transformOrigin: "0% 50%" });
+
     const minTime = new Promise((r) => setTimeout(r, 650));
     const fonts = document.fonts?.ready ?? Promise.resolve();
     const photo = new Promise<void>((r) => {
-      if (!hasPhoto) return r();
       const img = new Image();
       img.onload = () => r();
       img.onerror = () => r();
@@ -237,146 +148,65 @@ export default function Hero() {
     Promise.all([minTime, fonts, photo, pageLoad]).then(() => bump(100));
     const cap = setTimeout(() => bump(100), 4000);
 
+    const skipBtn = document.getElementById("intro-skip");
     const skip = (e: Event) => {
       e.preventDefault();
       gsap.killTweensOf(counter);
-      lineTl.kill();
-      revealed = true;
-      finish();
+      finished = true;
+      gsap.to(overlay, { autoAlpha: 0, duration: 0.25 });
+      enter(0.1);
+      done();
     };
-    const skipBtn = document.getElementById("intro-skip");
     skipBtn?.addEventListener("click", skip);
-
     return () => {
       clearTimeout(cap);
       skipBtn?.removeEventListener("click", skip);
     };
-  }, [layout, hasPhoto, setPhase]);
+  }, [enter, setPhase]);
 
-  /* ---------- scroll: fall through the letters ---------- */
+  /* ---------- the cards cycle by themselves until someone picks one ---------- */
+  useEffect(() => {
+    if (!auto || hovering || phase !== "done") return;
+    const id = setTimeout(() => setActive((a) => (a + 1) % hero.cards.length), CYCLE_MS);
+    return () => clearTimeout(id);
+  }, [auto, hovering, active, phase]);
+
+  const pick = (i: number) => {
+    setAuto(false);
+    setActive(i);
+  };
+
+  /* ---------- scroll: a little depth as the hero leaves ---------- */
   useGSAP(
     () => {
-      if (!layout) return;
       const mm = gsap.matchMedia();
-      mm.add(MQ.motion, () => {
-        const { focal } = layout;
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top top",
-            end: "+=140%",
-            pin: true,
-            scrub: 0.6,
-            anticipatePin: 1,
-            refreshPriority: 3,
-          },
-        });
-        tl.to(uiRef.current, { opacity: 0, y: -24, duration: 0.18, ease: "none" }, 0)
-          .to(
-            zoomRef.current,
-            { scale: 70, svgOrigin: `${focal.x} ${focal.y}`, duration: 1, ease: "power3.in" },
-            0.05
-          )
-          .fromTo(
-            imageRef.current,
-            { scale: 1.12, svgOrigin: `${focal.x} ${focal.y}` },
-            { scale: 1, duration: 1, ease: "none" },
-            0.05
-          )
-          .fromTo(fullRef.current, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "none" }, 0.9)
-          .to(".hero-bottom-rule", { scaleX: 0, transformOrigin: "100% 50%", duration: 0.2, ease: "none" }, 0);
+      mm.add(MQ.desktop, () => {
+        const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
+        gsap.to(".h-portrait-wrap", { yPercent: 8, ease: "none", scrollTrigger: st });
+        gsap.to(".h-arch-wrap", { yPercent: 3, ease: "none", scrollTrigger: st });
+        gsap.to(".h-left", { yPercent: -10, opacity: 0.2, ease: "none", scrollTrigger: st });
       });
-      ScrollTrigger.sort();
-      ScrollTrigger.refresh();
       return () => mm.revert();
     },
-    { dependencies: [layout], scope: sectionRef, revertOnUpdate: true }
+    { scope: sectionRef }
   );
 
-  const w = layout?.w ?? 1440;
-  const h = layout?.h ?? 900;
+  const goTo = (target: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    lenis?.scrollTo(target, { duration: 1.5 });
+  };
+
+  const card = hero.cards[active];
 
   return (
     <section
       ref={sectionRef}
       id="top"
       aria-label="Introduction"
-      className="on-black relative h-[100svh] min-h-[560px] w-full overflow-hidden"
+      className="on-paper relative min-h-[100svh] overflow-hidden px-[var(--gutter)] pt-20 lg:h-[100svh] lg:min-h-[720px] lg:pt-0"
     >
-      <h1 className="sr-only">
-        {site.name}, {site.role}, {site.city}
-      </h1>
-
-      <svg
-        className="absolute inset-0 h-full w-full"
-        width={w}
-        height={h}
-        viewBox={`0 0 ${w} ${h}`}
-        aria-hidden="true"
-      >
-        <defs>
-          <filter id="hero-bw" colorInterpolationFilters="sRGB">
-            <feColorMatrix type="saturate" values="0" />
-            <feComponentTransfer>
-              <feFuncR type="linear" slope="1.28" intercept="-0.12" />
-              <feFuncG type="linear" slope="1.28" intercept="-0.12" />
-              <feFuncB type="linear" slope="1.28" intercept="-0.12" />
-            </feComponentTransfer>
-          </filter>
-          <radialGradient id="hero-fallback" cx="0.42" cy="0.36" r="0.85">
-            <stop offset="0" stopColor="#f0ede8" />
-            <stop offset="0.45" stopColor="#9d9993" />
-            <stop offset="1" stopColor="#2a2927" />
-          </radialGradient>
-          <filter id="hero-noise">
-            <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
-            <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0" />
-          </filter>
-          <mask id="hero-mask" maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
-            <rect width={w} height={h} fill="black" />
-            <g ref={zoomRef}>
-              {layout?.lines.map((line, li) =>
-                line.text.split("").map((ch, i) => (
-                  <text
-                    key={`${li}-${i}`}
-                    className="hero-letter"
-                    x={line.xs[i]}
-                    y={line.y}
-                    fontSize={line.fs}
-                    fill="white"
-                    style={fontStyle(layout.wdth)}
-                  >
-                    {ch}
-                  </text>
-                ))
-              )}
-            </g>
-          </mask>
-        </defs>
-
-        {/* measuring copies, never visible */}
-        <g opacity="0" aria-hidden="true">
-          <text ref={(el) => void (measureRefs.current[0] = el)} x="0" y="-1000" style={fontStyle(125)}>
-            {site.first}
-          </text>
-          <text ref={(el) => void (measureRefs.current[1] = el)} x="0" y="-1000" style={fontStyle(125)}>
-            {site.last}
-          </text>
-        </g>
-
-        <g mask="url(#hero-mask)">
-          <g ref={imageRef}>
-            <HeroImage hasPhoto={hasPhoto} src={images.hero} rect={layout?.img} w={w} h={h} />
-          </g>
-        </g>
-        {/* unmasked copy that takes over at the end of the fall-through, so the frame always ends full */}
-        <g ref={fullRef} opacity="0">
-          <HeroImage hasPhoto={hasPhoto} src={images.heroFull} rect={layout?.img} w={w} h={h} />
-        </g>
-      </svg>
-
-      {/* Section 00 — loader (lives inside the hero so its letters become the mask) */}
-      <div ref={loaderRef} className="pointer-events-none absolute inset-0 z-20">
+      {/* ---------- Section 00: loader overlay ---------- */}
+      <div ref={overlayRef} className="on-black fixed inset-0 z-[100]" style={{ clipPath: "inset(0 0 0% 0)" }}>
         <div className="absolute left-[var(--gutter)] right-[var(--gutter)] top-1/2">
           <span className="loader-line absolute left-0 right-0 top-0 block h-px origin-left bg-[var(--paper)]" />
           <div className="absolute left-0 right-0 top-0 flex h-px">
@@ -388,60 +218,220 @@ export default function Hero() {
               />
             ))}
           </div>
-          <div className="loader-count mono absolute left-0 top-4 text-[var(--paper)]">
+          <div className="loader-count mono absolute left-0 top-4">
             <span ref={counterRef}>00</span> / 100
           </div>
+          <div className="loader-count mono absolute right-0 top-4 text-[var(--mute)]">{site.name}</div>
         </div>
         <button
           id="intro-skip"
-          className="mono pointer-events-auto absolute right-[var(--gutter)] top-5 text-[var(--mute)] transition-colors hover:text-[var(--paper)]"
+          className="mono absolute right-[var(--gutter)] top-5 text-[var(--mute)] transition-colors hover:text-[var(--paper)]"
         >
           [ skip ]
         </button>
       </div>
 
-      {/* foreground UI */}
-      <div ref={uiRef} className="pointer-events-none absolute inset-0 z-10">
-        <p className="body-copy absolute right-[var(--gutter)] top-[84px] hidden max-w-[19rem] text-[15px] leading-snug text-[var(--paper)]/80 md:block">
-          {hero.descriptor}
-        </p>
-        <div className="mono absolute bottom-7 left-[var(--gutter)] text-[var(--paper)]">
-          <div className="mb-3 md:hidden">[ {site.current} ]</div>
-          <div>{site.role}</div>
-          <div className="text-[var(--mute)]">
-            {site.city} · <LiveTime />
+      <div className="relative grid h-full grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-6">
+        {/* ---------- left: words + the pickable cards ---------- */}
+        <div className="h-left relative z-10 flex flex-col justify-center lg:col-span-6 lg:pb-10 lg:pt-24">
+          <p className="h-in mono text-[var(--mute-dark)]">{hero.hello}</p>
+          <h1
+            className="display mt-6 text-[clamp(40px,4.7vw,86px)] leading-[0.94]"
+            style={{ fontWeight: 800, fontStretch: "100%" }}
+          >
+            <span className="sr-only">{site.name}. </span>
+            {hero.lines.map((l, i) => (
+              <span key={i} className="h-line mask-line">
+                <span>{l}</span>
+              </span>
+            ))}
+          </h1>
+          <p className="h-in body-copy mt-7 max-w-[30em] text-[var(--black)]/75">{hero.descriptor}</p>
+
+          <div className="h-in mt-9 flex flex-wrap items-center gap-6">
+            <a
+              href="#work"
+              onClick={goTo("#work")}
+              className="mono inline-flex h-12 items-center bg-[var(--black)] px-6 text-[var(--paper)] transition-transform hover:-translate-y-0.5"
+              style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)" }}
+            >
+              {hero.ctaWork}
+            </a>
+            <a href="#origin" onClick={goTo("#origin")} className="mono group inline-flex items-center gap-2 hover:opacity-70">
+              {hero.ctaAbout}
+              <span className="transition-transform group-hover:translate-x-1">→</span>
+            </a>
+          </div>
+
+          {/* the deck */}
+          <div
+            className="h-in mt-12 lg:mt-14"
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => setHovering(false)}
+          >
+            <p className="mono mb-3 flex justify-between text-[var(--mute-dark)]">
+              <span>[ {hero.pickHint} ]</span>
+              <span className="hidden sm:inline">
+                {site.city} · <LiveTime />
+              </span>
+            </p>
+            <div
+              role="tablist"
+              aria-label="Highlights"
+              className="-mx-[var(--gutter)] flex snap-x gap-2 overflow-x-auto px-[var(--gutter)] pb-3 pt-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0"
+            >
+              {hero.cards.map((c, i) => (
+                <DeckCard
+                  key={c.title}
+                  card={c}
+                  index={i}
+                  picked={i === active}
+                  running={auto && !hovering && i === active && phase === "done"}
+                  onPick={() => pick(i)}
+                />
+              ))}
+            </div>
           </div>
         </div>
-        <div className="mono absolute bottom-7 right-[var(--gutter)] hidden text-right text-[var(--paper)] md:block">
-          [ {site.current} ]
+
+        {/* ---------- right: the portrait on an arch ---------- */}
+        <div className="relative h-[78svh] min-h-[520px] lg:col-span-6 lg:h-full">
+          <div className="h-arch-wrap absolute inset-x-[10%] bottom-0 top-[24%]">
+            <div className="h-arch h-full w-full rounded-t-[999px] bg-[#e2ded7]" />
+          </div>
+
+          <div className="h-portrait-wrap absolute inset-x-0 bottom-0 top-[6%] flex justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={images.hero}
+              alt={`Portrait of ${site.name}`}
+              className="h-portrait h-full w-auto max-w-none object-contain object-bottom"
+              fetchPriority="high"
+              draggable={false}
+            />
+          </div>
+
+          {/* available badge (teal use #1) */}
+          <div className="h-pop absolute left-0 top-[6%] flex items-center gap-3 rounded-full bg-[var(--black)] px-4 py-3 text-[var(--paper)] lg:bottom-[9%] lg:left-[4%] lg:top-auto">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--teal)] opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--teal)]" />
+            </span>
+            <span className="mono text-[10px]">{hero.available}</span>
+          </div>
+
+          {/* the detail of the picked card */}
+          <DetailCard card={card} index={active} />
         </div>
       </div>
-
-      {/* teal use #1 — the live "now" line */}
-      <span className="hero-bottom-rule absolute bottom-0 left-0 right-0 z-10 block h-px bg-[var(--teal)]" />
     </section>
   );
 }
 
-function HeroImage({
-  hasPhoto,
-  src,
-  rect,
-  w,
-  h,
+/* ---------------------------------------------------------------- */
+
+function DeckCard({
+  card,
+  index,
+  picked,
+  running,
+  onPick,
 }: {
-  hasPhoto: boolean | null;
-  src: string;
-  rect?: Rect;
-  w: number;
-  h: number;
+  card: HeroCard;
+  index: number;
+  picked: boolean;
+  running: boolean;
+  onPick: () => void;
 }) {
-  return hasPhoto && rect ? (
-    <image href={src} x={rect.x} y={rect.y} width={rect.w} height={rect.h} preserveAspectRatio="none" />
-  ) : (
-    <>
-      <rect width={w} height={h} fill="url(#hero-fallback)" />
-      <rect width={w} height={h} filter="url(#hero-noise)" />
-    </>
+  return (
+    <button
+      role="tab"
+      aria-selected={picked}
+      onClick={onPick}
+      className={`group relative flex min-h-[112px] w-[44vw] shrink-0 snap-start flex-col justify-between overflow-hidden border p-3 text-left transition-[background-color,color,transform,border-color] duration-300 sm:w-auto ${
+        picked
+          ? "-translate-y-1.5 border-[var(--black)] bg-[var(--black)] text-[var(--paper)]"
+          : "border-[var(--line-light)] bg-[#f7f5f1] text-[var(--black)] hover:-translate-y-1 hover:border-[var(--black)]/40"
+      }`}
+    >
+      <span className="mono flex justify-between text-[10px] opacity-60">
+        <span>{String(index + 1).padStart(2, "0")}</span>
+        <span className="transition-transform group-hover:translate-x-0.5">→</span>
+      </span>
+      <span>
+        <span className="mono block text-[10px] opacity-60">{card.kicker}</span>
+        <span className="mt-1 block text-[15px] leading-tight" style={{ fontWeight: 600 }}>
+          {card.title}
+        </span>
+      </span>
+      {/* progress line while the deck is cycling by itself */}
+      {running && (
+        <span
+          className="absolute bottom-0 left-0 h-[2px] w-full origin-left bg-current opacity-60"
+          style={{ animation: `deck-progress ${CYCLE_MS}ms linear forwards` }}
+        />
+      )}
+      <style>{`@keyframes deck-progress { from { transform: scaleX(0) } to { transform: scaleX(1) } }`}</style>
+    </button>
+  );
+}
+
+function DetailCard({ card, index }: { card: HeroCard; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current || window.matchMedia(MQ.reduced).matches) return;
+    gsap.fromTo(
+      ref.current.querySelectorAll(".dc-in"),
+      { y: 14, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.45, stagger: 0.05, ease: "power3.out" }
+    );
+    gsap.fromTo(
+      ref.current.querySelector(".dc-spark"),
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" }
+    );
+  }, [index]);
+
+  const W = 220;
+  const H = 54;
+  const pts = card.spark.map((v, i) => [(i / (card.spark.length - 1)) * W, H - 4 - v * (H - 10)] as const);
+  const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const last = pts[pts.length - 1];
+
+  return (
+    <div
+      ref={ref}
+      aria-live="polite"
+      className="h-pop on-black absolute bottom-[3%] right-0 w-[min(17rem,64vw)] p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] lg:bottom-[30%] lg:right-[-1%]"
+    >
+      <p className="dc-in mono flex justify-between text-[10px] text-[var(--mute)]">
+        <span>{card.kicker}</span>
+        <span>
+          {String(index + 1).padStart(2, "0")} / {String(hero.cards.length).padStart(2, "0")}
+        </span>
+      </p>
+      <p className="dc-in mt-4 text-[13px] text-[var(--paper)]/70">{card.title}</p>
+      <p
+        className="dc-in display mt-1 text-[clamp(38px,3.4vw,52px)] leading-none"
+        style={{ fontWeight: 800, fontStretch: "90%" }}
+      >
+        {card.metric}
+      </p>
+      <p className="dc-in mono mt-2 text-[10px] text-[var(--mute)]">{card.metricLabel}</p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="dc-in mt-4 w-full overflow-visible" aria-hidden="true">
+        <path
+          d={d}
+          className="dc-spark"
+          fill="none"
+          stroke="var(--paper)"
+          strokeWidth="1.2"
+          pathLength={1}
+          strokeDasharray="1"
+        />
+        <circle cx={last[0]} cy={last[1]} r="2.6" fill="var(--paper)" />
+      </svg>
+      <p className="dc-in mt-4 text-[13px] leading-snug text-[var(--paper)]/80">{card.line}</p>
+    </div>
   );
 }

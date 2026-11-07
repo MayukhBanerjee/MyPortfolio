@@ -55,8 +55,8 @@ public/images/          photos (see README there)
 ## Scenes
 | # | File | What happens | 3D? |
 |---|---|---|---|
-| 00+01 | `sections/Hero.tsx` | Loader is built into the hero: a 1px line draws, the counter follows real loading, the line shatters, and MAYUKH / BANERJEE slam in. The name is an SVG mask: the portrait shows only through the letters, with the face placed behind the Y. On scroll, the view zooms through the Y stem into the face, then the full-contrast photo takes the frame. Intro plays once per session. | no |
-| 02 | `sections/Statement.tsx` | Paper. "I keep noticing problems…": each word snaps in on its own scroll position (pinned). | no |
+| 00+01 | `sections/Hero.tsx` | Loader overlay (1px line, real-loading counter, line shatters, overlay wipes up), then a light editorial hero: intro + headline + CTAs on the left, B&W cutout portrait on a soft arch on the right, "open to roles" badge (teal dot). **Pickable cards**: 4 proof cards (Production AI / Research / Hackathon / Football); picking one swaps the dark detail card beside the portrait (metric, sparkline, one line). Cycles every 4.8s with a progress line until someone picks. Light parallax on scroll. | no |
+| 02 | `sections/Statement.tsx` | Paper. The claim sits small in the centre, surrounded by 5 quiet grey notes (the real problems behind the projects). Pinned: each note is "said out loud" centre stage, then settles in black with "→ became X" linking to its project. On mobile it's a list that darkens as you read. | no |
 | 03 | `sections/Origin.tsx` | Black. Pinned horizontal chapters with giant numerals: 06 / 2+2→4 / 200 / 100K. Vertical on mobile. | no |
 | 04 | `sections/HowIWork.tsx` | Research-first copy, depth ladder, and **TinyLM**: a real trigram model trained on the site's own text, showing live next-word probabilities. | no |
 | 05 | `sections/Work.tsx` | Moxsend → Scheduler AI → EcoLoop → Evoke. Giant cropped names, one proving visual each, `→` opens a black overlay. | Moxsend pipeline |
@@ -70,7 +70,7 @@ Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `
 1. **Copy only lives in `data/portfolio.ts`**, and must come from `Claude/08_NARRATIVE_AND_COPY.md`. Never hardcode text in JSX.
 2. **Voice:** first person, no em dashes in site copy, no slogans or "Not X. Y." lines, no invented details. Test: would Mayukh say it to a recruiter on a call?
 3. **Teal `#00d4b4` = verified fact, max 5 uses, only on black:**
-   1. hero bottom line
+   1. hero "open to roles" badge dot
    2. "gold" (Origin)
    3. "200" (Origin)
    4. Moxsend 90%+ (overlay)
@@ -79,20 +79,22 @@ Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `
    Count before adding any.
 4. **3D only where it explains something.** No decorative shapes, starfields or orbs.
 5. Every scroll animation sits inside `gsap.matchMedia()` with `MQ.motion` (reduced motion gets the static end state).
-6. Pinned triggers need `refreshPriority` in page order (hero 3, statement 2, origin 1), or start positions break.
+6. Pinned triggers need `refreshPriority` in page order (statement 2, origin 1), or start positions break.
 7. 3D canvases mount only near the viewport (`useNearViewport`) and render only while visible (`frameloop`).
 8. Never put salary, phone number or address on the site.
+9. Global CSS goes inside `@layer base` (elements) or `@layer components` (classes like `.mono`, `.display`). Unlayered CSS beats Tailwind utilities and silently breaks `text-*`, `leading-*` and so on.
 
 ## Photos
 Originals go in `photos/` (gitignored). Run `npm run photos` (`scripts/prepare-photos.mjs`, uses sharp) to write optimized files to `public/images/`:
-- `hero.jpg` produces two files: `hero-mask.jpg` (B&W, blacks lifted to about #3c so letters never vanish over the night sky) and `hero-full.jpg` (deep B&W, the full frame at the end of the dive).
+- `hero-cutout.png` (portrait with the background removed) becomes `hero-cutout.webp` (B&W, transparent).
+  - The cutout was made with rembg (`u2net_human_seg`), then the alpha was smoothed (blur + levels).
+  - The source shot is `photos/hero.jpg`.
 - `football.jpg` and `diary.jpg` are optimized if present. Scenes fall back to placeholders when they're missing.
-
-Hero placement uses `images.heroFocus` (face position, 0 to 1), `heroAspect` and `heroZoom` in `data/portfolio.ts`. The photo is slid so the face lands behind the "Y" of MAYUKH, and the scroll dive zooms into the Y stem.
 
 ## Status / TODO
 - [x] All 9 scenes built, desktop + mobile checked via screenshots, build passing
-- [x] Hero portrait in (2026-11-07)
+- [x] Hero portrait in (2026-11-07); hero redesigned to the light editorial layout with pickable cards
+- [x] Statement redesigned: problems "said out loud", each linking to what it became
 - [ ] `football.jpg`, `diary.jpg` → `photos/`, then `npm run photos`
 - [ ] `public/resume.pdf` (linked from nav, contact and the 30 SEC sheet; 404 until added)
 - [ ] Confirm with Easehawk that competitor names and Moxsend details are OK to publish
