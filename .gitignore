@@ -47,3 +47,7 @@ desktop.ini
 coverage/
 /test-results/
 /playwright-report/
+
+# --- Original photos (only the optimized versions in public/images are committed) ---
+photos/*
+!photos/README.md

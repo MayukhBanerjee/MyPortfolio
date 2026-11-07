@@ -5,7 +5,8 @@ import { Providers } from "@/components/Providers";
 import Nav from "@/components/ui/Nav";
 import MatchClock from "@/components/ui/MatchClock";
 import HighlightsSheet from "@/components/ui/HighlightsSheet";
-import { site } from "@/data/portfolio";
+import { preload } from "react-dom";
+import { images, site } from "@/data/portfolio";
 
 const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-archivo", display: "swap" });
 const instrumentSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-instrument-sans", display: "swap" });
@@ -51,6 +52,7 @@ const jsonLd = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  preload(images.hero, { as: "image", fetchPriority: "high" });
   return (
     <html
       lang="en"

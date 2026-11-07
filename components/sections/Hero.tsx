@@ -8,7 +8,8 @@ import { hero, images, site } from "@/data/portfolio";
 import LiveTime from "@/components/ui/LiveTime";
 
 type Line = { text: string; fs: number; y: number; xs: number[] };
-type Layout = { w: number; h: number; wdth: number; lines: [Line, Line]; focal: { x: number; y: number } };
+type Rect = { x: number; y: number; w: number; h: number };
+type Layout = { w: number; h: number; wdth: number; lines: [Line, Line]; focal: { x: number; y: number }; img: Rect };
 
 const fontStyle = (wdth: number) =>
   ({
@@ -27,7 +28,8 @@ const INTRO_KEY = "mb-intro-seen";
 /**
  * Section 01 — Hero, with Section 00 (the loader) built in.
  * The name is the mask: the portrait shows only through MAYUKH / BANERJEE.
- * On scroll the camera falls through the H crossbar until the photo fills the frame.
+ * The photo is placed so the face sits behind the name, centred on the Y.
+ * On scroll the camera falls through the stem of the Y, into the face, until the photo fills the frame.
  */
 export default function Hero() {
   const { phase, setPhase } = useSite();
@@ -84,9 +86,20 @@ export default function Hero() {
       const y1 = top + a.fs * CAP;
       const y2 = y1 + gap + b.fs * CAP;
 
-      // focal point: middle of the H crossbar in MAYUKH (index 5) — solid ink, so the zoom fills with photo
-      const ext = m1.getExtentOfChar(5);
-      const focal = { x: g + ext.x + ext.width / 2, y: y1 - a.fs * CAP * 0.5 };
+      // focal point: the stem of the Y in MAYUKH (index 2). Solid ink, and it sits over the face.
+      const ext = m1.getExtentOfChar(2);
+      const focal = { x: g + ext.x + ext.width / 2, y: y1 - a.fs * CAP * 0.22 };
+
+      // place the photo: cover the viewport, then slide it so the face lands behind the Y
+      const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+      const dispW = Math.max(w, h / images.heroAspect) * images.heroZoom;
+      const dispH = dispW * images.heroAspect;
+      const img = {
+        w: dispW,
+        h: dispH,
+        x: clamp(focal.x - images.heroFocus.x * dispW, w - dispW, 0),
+        y: clamp(top + block / 2 - images.heroFocus.y * dispH, h - dispH, 0),
+      };
 
       setLayout({
         w,
@@ -97,6 +110,7 @@ export default function Hero() {
           { text: site.last, fs: b.fs, y: y2, xs: b.xs.map((x) => x + g) },
         ],
         focal,
+        img,
       });
     };
     const schedule = () => {
@@ -352,12 +366,12 @@ export default function Hero() {
 
         <g mask="url(#hero-mask)">
           <g ref={imageRef}>
-            <HeroImage hasPhoto={hasPhoto} w={w} h={h} />
+            <HeroImage hasPhoto={hasPhoto} src={images.hero} rect={layout?.img} w={w} h={h} />
           </g>
         </g>
         {/* unmasked copy that takes over at the end of the fall-through, so the frame always ends full */}
         <g ref={fullRef} opacity="0">
-          <HeroImage hasPhoto={hasPhoto} w={w} h={h} />
+          <HeroImage hasPhoto={hasPhoto} src={images.heroFull} rect={layout?.img} w={w} h={h} />
         </g>
       </svg>
 
@@ -409,17 +423,21 @@ export default function Hero() {
   );
 }
 
-function HeroImage({ hasPhoto, w, h }: { hasPhoto: boolean | null; w: number; h: number }) {
-  return hasPhoto ? (
-    <image
-      href={images.hero}
-      x="0"
-      y="0"
-      width={w}
-      height={h}
-      preserveAspectRatio="xMidYMid slice"
-      filter="url(#hero-bw)"
-    />
+function HeroImage({
+  hasPhoto,
+  src,
+  rect,
+  w,
+  h,
+}: {
+  hasPhoto: boolean | null;
+  src: string;
+  rect?: Rect;
+  w: number;
+  h: number;
+}) {
+  return hasPhoto && rect ? (
+    <image href={src} x={rect.x} y={rect.y} width={rect.w} height={rect.h} preserveAspectRatio="none" />
   ) : (
     <>
       <rect width={w} height={h} fill="url(#hero-fallback)" />

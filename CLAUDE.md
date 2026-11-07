@@ -55,7 +55,7 @@ public/images/          photos (see README there)
 ## Scenes
 | # | File | What happens | 3D? |
 |---|---|---|---|
-| 00+01 | `sections/Hero.tsx` | Loader is built into the hero: a 1px line draws, the counter follows real loading, the line shatters, and MAYUKH / BANERJEE slam in. The name is an SVG mask: the portrait shows only through the letters. On scroll, the view zooms into the H crossbar until the photo fills the frame. Intro plays once per session. | no |
+| 00+01 | `sections/Hero.tsx` | Loader is built into the hero: a 1px line draws, the counter follows real loading, the line shatters, and MAYUKH / BANERJEE slam in. The name is an SVG mask: the portrait shows only through the letters, with the face placed behind the Y. On scroll, the view zooms through the Y stem into the face, then the full-contrast photo takes the frame. Intro plays once per session. | no |
 | 02 | `sections/Statement.tsx` | Paper. "I keep noticing problems…": each word snaps in on its own scroll position (pinned). | no |
 | 03 | `sections/Origin.tsx` | Black. Pinned horizontal chapters with giant numerals: 06 / 2+2→4 / 200 / 100K. Vertical on mobile. | no |
 | 04 | `sections/HowIWork.tsx` | Research-first copy, depth ladder, and **TinyLM**: a real trigram model trained on the site's own text, showing live next-word probabilities. | no |
@@ -83,12 +83,17 @@ Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `
 7. 3D canvases mount only near the viewport (`useNearViewport`) and render only while visible (`frameloop`).
 8. Never put salary, phone number or address on the site.
 
-## Photos (pending)
-Drop `hero.jpg`, `football.jpg`, `diary.jpg` into `public/images/` (specs in `public/images/README.md`). Each scene detects the file and falls back to a grain/gradient placeholder until it exists.
+## Photos
+Originals go in `photos/` (gitignored). Run `npm run photos` (`scripts/prepare-photos.mjs`, uses sharp) to write optimized files to `public/images/`:
+- `hero.jpg` produces two files: `hero-mask.jpg` (B&W, blacks lifted to about #3c so letters never vanish over the night sky) and `hero-full.jpg` (deep B&W, the full frame at the end of the dive).
+- `football.jpg` and `diary.jpg` are optimized if present. Scenes fall back to placeholders when they're missing.
+
+Hero placement uses `images.heroFocus` (face position, 0 to 1), `heroAspect` and `heroZoom` in `data/portfolio.ts`. The photo is slid so the face lands behind the "Y" of MAYUKH, and the scroll dive zooms into the Y stem.
 
 ## Status / TODO
 - [x] All 9 scenes built, desktop + mobile checked via screenshots, build passing
-- [ ] Real photos → `public/images/`
+- [x] Hero portrait in (2026-11-07)
+- [ ] `football.jpg`, `diary.jpg` → `photos/`, then `npm run photos`
 - [ ] `public/resume.pdf` (linked from nav, contact and the 30 SEC sheet; 404 until added)
 - [ ] Confirm with Easehawk that competitor names and Moxsend details are OK to publish
 - [ ] Mayukh to sign off copy blocks added in code beyond doc 08: Scheduler/EcoLoop/Evoke "long" paragraphs, inbox paragraph, LM intro
