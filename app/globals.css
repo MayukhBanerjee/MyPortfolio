@@ -147,6 +147,21 @@
     100% { transform: translate(0, 0); }
   }
 
+  /* scroll cue on the intro: the ring turns, the arrow bobs */
+  .cue-spin {
+    animation: cue-spin 24s linear infinite;
+  }
+  .cue-bob {
+    animation: cue-bob 1.6s ease-in-out infinite;
+  }
+  @keyframes cue-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes cue-bob {
+    0%, 100% { transform: translateY(-4px); }
+    50% { transform: translateY(5px); }
+  }
+
   /* nav + match clock stay out of the way on the intro screen */
   html[data-intro="1"] .site-chrome {
     opacity: 0 !important;

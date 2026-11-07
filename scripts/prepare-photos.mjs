@@ -3,6 +3,7 @@
  * Run: npm run photos
  *
  * hero.jpg     -> hero-portrait.webp (B&W, background kept, cropped to head and torso)
+ * hello.jpg    -> hello-portrait.webp (COLOUR, cropped to the arch)
  * football.jpg -> football.jpg (B&W, resized)
  * diary.jpg    -> diary.jpg    (resized, colour kept)
  */
@@ -39,26 +40,24 @@ async function hero() {
 }
 
 async function hello() {
-  // the smiling one, for the "Hi, I'm" screen: head to crossed arms, arch-shaped crop (0.72)
+  // the smiling one: full COLOUR, head to crossed arms, cropped to the arch (0.72)
   const src = join(SRC, "hello.jpg");
   if (!existsSync(src)) return;
-  const img = sharp(src).rotate();
-  const { width: W0, height: H0, orientation } = await img.metadata();
+  const { width: W0, height: H0, orientation } = await sharp(src).metadata();
   const [W, H] = orientation && orientation >= 5 ? [H0, W0] : [W0, H0];
   const cw = Math.round(W * 0.74);
   const ch = Math.min(H, Math.round(cw / 0.72));
   const left = Math.round(W * 0.11);
   const top = H - ch;
-  const grey = await sharp(src)
+  await sharp(src)
     .rotate()
     .extract({ left, top, width: cw, height: ch })
     .resize({ width: 1400 })
-    .grayscale()
-    .normalise()
-    .toColourspace("b-w")
-    .png()
-    .toBuffer();
-  await sharp(grey).linear(1.1, -10).sharpen({ sigma: 0.6 }).webp({ quality: 84 }).toFile(join(OUT, "hello-portrait.webp"));
+    .modulate({ saturation: 1.04, brightness: 1.0 })
+    .linear(1.05, -4)
+    .sharpen({ sigma: 0.6 })
+    .webp({ quality: 86 })
+    .toFile(join(OUT, "hello-portrait.webp"));
   done.push("hello-portrait.webp");
 }
 

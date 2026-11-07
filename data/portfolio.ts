@@ -60,7 +60,9 @@ export type HeroCard = {
 
 export const hero = {
   introHello: "Hi, I'm",
-  hello: "Hi, I'm Mayukh Banerjee",
+  hello: "AI/ML engineer in Bangalore",
+  cueRing: "Scroll down · AI/ML engineer · Bangalore · ",
+  cueLabel: "Scroll down",
   lines: ["I build AI systems", "that keep working", "when things go wrong."],
   descriptor:
     "AI/ML engineer from Bangalore. I own the AI at Easehawk, I've published research, and I captained Karnataka's under-17 football team to a national gold.",
