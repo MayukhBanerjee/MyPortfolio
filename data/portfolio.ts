@@ -20,6 +20,10 @@ export type Project = {
   /** only what the card does not already say; shown in the full-screen view */
   detail: string[];
   receipt: { value: string; label: string };
+  /** how it works, as a short left-to-right flow (overlay diagram) */
+  flow: string[];
+  /** extra numbers with their context (overlay only) */
+  numbers: string[];
   stack: string;
   links: { label: string; href: string }[];
   visual: "pipeline" | "salon" | "building" | "voice";
@@ -41,7 +45,7 @@ export const site = {
   links: {
     linkedin: "https://www.linkedin.com/in/mayukh-banerjee",
     github: "https://github.com/MayukhBanerjee",
-    resume: "/resume.pdf",
+    resume: "/Mayukh-Banerjee-Resume.pdf",
   },
   description:
     "AI/ML engineer from Bangalore. I build AI systems end to end, mostly the parts that have to keep working when something goes wrong.",
@@ -75,19 +79,26 @@ export const hero = {
   cueLabel: "Scroll down",
   lines: ["I build AI systems", "that keep working", "when things go wrong."],
   /** who and where, in facts. The results are in the cards below. */
-  descriptor:
-    "From Bangalore, in my final year of B.Tech at VIT, and an AI engineer at Easehawk Technologies.",
+  descriptor: "Final-year B.Tech student at VIT and AI engineering intern at Easehawk Technologies. From Bangalore.",
   ctaWork: "See my work",
-  ctaAbout: "How it started",
+  ctaResume: "Resume",
   available: "Open to full-time AI/ML roles",
   pickHint: "pick a card",
   cards: [
     {
       kicker: "Production AI",
+      title: "Easehawk",
+      metric: "5",
+      metricLabel: "live products I own the AI on",
+      line: "As an intern, since May 2026.",
+      spark: [0.15, 0.3, 0.32, 0.5, 0.55, 0.7, 0.78, 0.9, 1],
+    },
+    {
+      kicker: "Cost",
       title: "Moxsend",
       metric: "90%+",
       metricLabel: "lower LLM costs",
-      line: "The AI behind a live cold email platform.",
+      line: "On a live cold email pipeline.",
       spark: [0.95, 0.9, 0.82, 0.6, 0.42, 0.3, 0.18, 0.12, 0.08],
     },
     {
@@ -106,15 +117,39 @@ export const hero = {
       line: "Agents that run a building's climate. Built for Honeywell.",
       spark: [0.8, 0.82, 0.7, 0.66, 0.55, 0.5, 0.42, 0.4, 0.36],
     },
-    {
-      kicker: "Football",
-      title: "Karnataka U-17",
-      metric: "Gold",
-      metricLabel: "national champions",
-      line: "I captained the team.",
-      spark: [0.2, 0.3, 0.28, 0.45, 0.5, 0.62, 0.7, 0.85, 1],
-    },
   ] as HeroCard[],
+};
+
+export type Role = { when: string; title: string; org: string; place: string; line: string; href?: string };
+
+/** The record: roles, dates and education. The stories behind them live in `origin` and `projects`. */
+export const experience = {
+  label: "experience",
+  roles: [
+    {
+      when: "May 2026 – now",
+      title: "AI Engineer (Intern)",
+      org: "Easehawk Technologies",
+      place: "Bengaluru",
+      line: "I own the AI across five live products: Moxsend, MoxReply, MoxCRM, MoxCampus and the EaseHawk avatar chatbot.",
+      href: "#work-moxsend",
+    },
+    {
+      when: "2025",
+      title: "Technical & Research Team Lead",
+      org: "E-Cell, VIT",
+      place: "Vellore",
+      line: "Automated 100+ live data sheets for a flagship event with 5,000+ applicants, with zero downtime across 8 hours.",
+    },
+  ] as Role[],
+  educationLabel: "education",
+  education: {
+    when: "2023 – 2027",
+    title: "B.Tech, Information Technology",
+    org: "Vellore Institute of Technology",
+    place: "Vellore",
+    line: "GPA 8.56 / 10. Graduating June 2027.",
+  } as Role,
 };
 
 export const statement = {
@@ -161,7 +196,7 @@ export type StoryChapter = {
   lead: string;
   /** optional: one line in my own voice that adds the meaning, never a restatement */
   note?: string;
-  module: "scoreboard" | "calculator" | "counter" | "products";
+  module?: "scoreboard" | "calculator" | "counter";
 };
 
 export const origin = {
@@ -195,7 +230,6 @@ export const origin = {
       when: "May 2026",
       title: "Day one",
       lead: "I joined Easehawk Technologies with no industry experience. My projects were the closest thing I had. Now I own the AI on their live products.",
-      module: "products",
     },
   ] as StoryChapter[],
   scoreboard: [
@@ -206,16 +240,6 @@ export const origin = {
   ] as { what: string; score: string; note: string; accent?: boolean }[],
   calculatorCaption: "try it. the keyboard works too",
   counter: { value: 200, label: "people used it, live" },
-  products: {
-    label: "Live products I own the AI on",
-    items: [
-      ["Moxsend", "cold email", "#work-moxsend"],
-      ["MoxReply", "inbox automation", ""],
-      ["MoxCRM", "lead management", ""],
-      ["MoxCampus", "EdTech", ""],
-      ["EaseHawk Avatar", "chatbot", ""],
-    ] as [string, string, string][],
-  },
 };
 
 export const method = {
@@ -234,9 +258,9 @@ export const method = {
     "System architecture",
   ],
   lm: {
-    title: "A small language model",
+    title: "A tiny language model",
     intro:
-      "Built from scratch and trained on the words on this page. Pick a word and watch it guess what comes next.",
+      "A trigram model I wrote from scratch, trained only on the words on this page. It's small on purpose, so you can watch next-word prediction happen one step at a time.",
     caption: "trigram model · trained on this page · no API",
     seeds: ["I", "Football", "Most", "The", "A", "Now"],
   },
@@ -255,6 +279,20 @@ export const projects: Project[] = [
       "Grouping leads into cohorts is what brought the LLM bill down. One template per cohort, with each lead's details merged in, instead of a model call for every lead.",
     ],
     receipt: { value: "90%+", label: "lower LLM costs" },
+    flow: [
+      "Leads",
+      "Rule-based sorter, zero tokens",
+      "Cohorts",
+      "RAG over lead profile + campaign brief",
+      "One template per cohort",
+      "Merge tags per lead",
+      "Send, then read replies by intent",
+    ],
+    numbers: [
+      "Leads sorted into 6 sectors and 20+ roles at 100% accuracy, without a single LLM call",
+      "0% made-up URLs in the knowledge layer: pages are turned into fact summaries before they reach the prompt",
+      "Shipped with Arabic for clients in the GCC",
+    ],
     stack: "Python, FastAPI, LangChain, Qdrant",
     links: [],
     visual: "pipeline",
@@ -270,8 +308,21 @@ export const projects: Project[] = [
       "The model only does two jobs: understanding what the person wants and writing the reply. Searching, ranking and checking that a slot is free all run as plain code, so it can't book a time that doesn't exist.",
     ],
     receipt: { value: "0", label: "hallucinated bookings" },
+    flow: [
+      "Customer message",
+      "LLM: understand it",
+      "Search",
+      "Rank",
+      "Check the slot is free",
+      "Owner confirms",
+      "LLM: write the reply",
+    ],
+    numbers: ["A 6-node LangGraph state graph", "The model only touches the first and last step"],
     stack: "LangGraph, FastAPI, Next.js, MongoDB",
-    links: [{ label: "code on github", href: "https://github.com/MayukhBanerjee/Scheduler-AI" }],
+    links: [
+      { label: "live demo", href: "https://scheduler-ai-haha.vercel.app" },
+      { label: "code on github", href: "https://github.com/MayukhBanerjee/Scheduler-AI" },
+    ],
     visual: "salon",
   },
   {
@@ -285,6 +336,19 @@ export const projects: Project[] = [
       "Any extra sensor a building has can be plugged straight in. The agent only suggests changes: a separate safety layer checks every value before it reaches the equipment.",
     ],
     receipt: { value: "33.8%", label: "less electricity, in simulation" },
+    flow: [
+      "Occupancy + sensors (EnergyPlus)",
+      "Agent (Groq)",
+      "5 MCP tools, checked by Pydantic",
+      "Writes queued to the end of each step",
+      "Safety clamp",
+      "HVAC",
+    ],
+    numbers: [
+      "114.1 kWh against 172.5 kWh for the same building with no control",
+      "Comfort up 10.1 points at the same time",
+      "Every number comes from the simulation's own output",
+    ],
     stack: "Python, MCP, Groq, EnergyPlus, Streamlit",
     links: [{ label: "code on github", href: "https://github.com/MayukhBanerjee/EcoLoop" }],
     visual: "building",
@@ -300,11 +364,35 @@ export const projects: Project[] = [
       "The hard part was stopping it from inventing opinions the person never had. Consent and data expiry are built into the infrastructure itself, not left as a policy.",
     ],
     receipt: { value: "15.3% → 2.0%", label: "made-up answers" },
+    flow: [
+      "Recordings",
+      "Transcribe + Comprehend",
+      "Schema-conditioned RAG",
+      "Humility gate: no invented opinions",
+      "Reply in their style",
+    ],
+    numbers: [
+      "Cohen's d = 1.31, p < .001",
+      "Authenticity up 1.47 points over a standard LLM",
+      "10 AWS serverless services, $0 extra cost on the free tier",
+    ],
     stack: "Schema-conditioned RAG, AWS serverless, Bedrock, LangChain",
     links: [{ label: "code on github", href: "https://github.com/MayukhBanerjee/Evoke" }],
     visual: "voice",
   },
 ];
+
+export const alsoBuilt = {
+  label: "Also built",
+  items: [
+    {
+      name: "LeBy",
+      line: "The law in plain English. A RAG assistant over the Constitution and Indian case law that answers in under 5 seconds.",
+      stack: "FAISS, Gemini, LangChain, FastAPI, React",
+      href: "https://github.com/MayukhBanerjee/LeBy",
+    },
+  ],
+};
 
 export const toolkit = {
   left: {
@@ -320,6 +408,16 @@ export const toolkit = {
       ["FastAPI, Node.js", "used"],
     ] as [string, string][],
   },
+  groupsLabel: "The full list",
+  groups: [
+    ["Languages", "Python, TypeScript, JavaScript, C++, Java"],
+    ["AI / ML", "LangChain, LangGraph, MCP, RAG, agentic systems, PyTorch, Keras, scikit-learn, XGBoost, Hugging Face"],
+    ["LLM APIs", "OpenAI, Groq, Gemini, AWS Bedrock"],
+    ["Backend", "FastAPI, Node.js, Express, Pydantic, REST APIs"],
+    ["Frontend", "React, Next.js"],
+    ["Data", "Qdrant, FAISS, Chroma, Pinecone, DynamoDB, MongoDB, Oracle SQL, Pandas, NumPy"],
+    ["Cloud & tools", "AWS (Lambda, S3, Cognito, Transcribe, Comprehend, Amplify, CloudWatch), Git, Streamlit, EnergyPlus"],
+  ] as [string, string][],
   right: {
     strongLabel: "Where I'm strongest",
     strong:
@@ -362,6 +460,7 @@ export const nav = [
   { label: "Skills", href: "#toolkit" },
   { label: "Contact", href: "#contact" },
 ];
+export const navResume = "Resume";
 
 /** Corpus for the in-page language model: the copy that is actually on the page. */
 export function corpus(): string {

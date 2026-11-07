@@ -42,7 +42,7 @@ export default function Statement() {
           scrollTrigger: {
             trigger: ref.current,
             start: "top top",
-            end: `+=${notes.length * 55 + 60}%`,
+            end: `+=${notes.length * 30 + 40}%`,
             pin: true,
             scrub: 0.5,
             refreshPriority: 2,

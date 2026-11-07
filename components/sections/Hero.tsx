@@ -125,7 +125,7 @@ export default function Hero() {
     tl.fromTo(
       lg ? ".frame" : ".m-photo-a",
       { clipPath: "inset(100% 0 0 0)" },
-      { clipPath: "inset(0% 0 0 0)", duration: 1.4, ease: "expo.inOut" },
+      { clipPath: "inset(0% 0 0 0)", duration: 1.0, ease: "expo.inOut" },
       0
     )
       .fromTo(
@@ -135,11 +135,11 @@ export default function Hero() {
         0.1
       )
       .to(".outline-arch, .m-outline", { autoAlpha: 1, duration: 1, ease: "power2.out" }, 0.7)
-      .to(".a-letter", { yPercent: 0, duration: 1.1, stagger: 0.07, ease: "expo.out" }, 0.55)
-      .to(".a-last", { clipPath: "inset(0 0% 0 0)", duration: 1.3, ease: "expo.inOut" }, 0.9)
-      .fromTo(".a-hello", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.9 }, 1.15)
-      .fromTo(".hi-cue", { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.9, ease: "back.out(1.8)" }, 1.55)
-      .add(onReady, 1.9);
+      .to(".a-letter", { yPercent: 0, duration: 0.85, stagger: 0.05, ease: "expo.out" }, 0.2)
+      .to(".a-last", { clipPath: "inset(0 0% 0 0)", duration: 0.9, ease: "expo.inOut" }, 0.4)
+      .fromTo(".a-hello", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6 }, 0.6)
+      .fromTo(".hi-cue", { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" }, 0.85)
+      .add(onReady, 1.15);
   }, []);
 
   /* ---------- Section 00: loader, driven by real loading. First visit per session only ---------- */
@@ -193,15 +193,15 @@ export default function Hero() {
         );
       });
       tl.to(".loader-count", { opacity: 0, duration: 0.15 }, 0)
-        .to(overlay, { clipPath: "inset(0 0 100% 0)", duration: 0.8, ease: "expo.inOut" }, 0.25)
+        .to(overlay, { clipPath: "inset(0 0 100% 0)", duration: 0.6, ease: "expo.inOut" }, 0.1)
         .set(overlay, { autoAlpha: 0 });
-      enter(0.55, done);
+      enter(0.25, done);
     };
     const bump = (n: number) => {
       target = Math.min(100, target + n);
       gsap.to(counter, {
         v: target,
-        duration: 0.45,
+        duration: 0.22,
         ease: "power1.out",
         onUpdate: render,
         onComplete: () => {
@@ -210,7 +210,7 @@ export default function Hero() {
       });
     };
 
-    gsap.fromTo(".loader-line", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.inOut", transformOrigin: "0% 50%" });
+    gsap.fromTo(".loader-line", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "expo.inOut", transformOrigin: "0% 50%" });
 
     const load = (src: string) =>
       new Promise<void>((r) => {
@@ -219,7 +219,7 @@ export default function Hero() {
         img.onerror = () => r();
         img.src = src;
       });
-    const minTime = new Promise((r) => setTimeout(r, 650));
+    const minTime = new Promise((r) => setTimeout(r, 250));
     const fonts = document.fonts?.ready ?? Promise.resolve();
     const photo = load(images.hero);
     const pageLoad = new Promise<void>((r) =>
@@ -231,7 +231,7 @@ export default function Hero() {
     photo.then(() => bump(30));
     pageLoad.then(() => bump(17));
     Promise.all([minTime, fonts, photo, pageLoad]).then(() => bump(100));
-    const cap = setTimeout(() => bump(100), 4000);
+    const cap = setTimeout(() => bump(100), 2200);
 
     const skipBtn = document.getElementById("intro-skip");
     const skip = (e: Event) => {
@@ -657,9 +657,14 @@ export default function Hero() {
             >
               {hero.ctaWork}
             </a>
-            <a href="#origin" onClick={goTo("#origin")} className="mono group inline-flex items-center gap-2 hover:opacity-70">
-              {hero.ctaAbout}
-              <span className="transition-transform group-hover:translate-x-1">→</span>
+            <a
+              href={site.links.resume}
+              target="_blank"
+              rel="noreferrer"
+              className="mono group inline-flex h-12 items-center gap-2 border border-[var(--black)] px-6 transition-colors hover:bg-[var(--black)] hover:text-[var(--paper)]"
+            >
+              {hero.ctaResume}
+              <span className="transition-transform group-hover:translate-y-0.5">↓</span>
             </a>
           </div>
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { gsap, MQ, useGSAP } from "@/lib/gsap";
-import { projects, type Project } from "@/data/portfolio";
+import { alsoBuilt, projects, type Project } from "@/data/portfolio";
 import SectionLabel from "@/components/ui/SectionLabel";
 import PipelineVisual from "@/components/work/PipelineVisual";
 import SalonStory from "@/components/work/SalonStory";
@@ -131,6 +131,31 @@ export default function Work() {
           </div>
         </article>
       ))}
+
+      <div className="px-[var(--gutter)] py-16">
+        <p className="mono text-[var(--mute-dark)]">[ {alsoBuilt.label} ]</p>
+        <ul className="mt-5">
+          {alsoBuilt.items.map((a) => (
+            <li key={a.name}>
+              <a
+                href={a.href}
+                target="_blank"
+                rel="noreferrer"
+                className="group grid grid-cols-1 gap-2 border-y border-[var(--line-light)] py-6 md:grid-cols-12 md:gap-6"
+              >
+                <span className="text-[clamp(22px,2vw,30px)] md:col-span-3" style={{ fontWeight: 600 }}>
+                  {a.name}
+                </span>
+                <span className="body-copy text-[var(--black)]/80 md:col-span-6">{a.line}</span>
+                <span className="mono flex items-start justify-between gap-4 text-[var(--mute-dark)] md:col-span-3">
+                  <span className="normal-case tracking-normal">{a.stack}</span>
+                  <span className="transition-transform group-hover:translate-x-1">↗</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {open && <ProjectOverlay project={open} onClose={close} />}
     </section>

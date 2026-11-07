@@ -5,7 +5,7 @@ Last updated: 2026-11-07.
 
 ## What this is
 Personal portfolio for Mayukh Banerjee (AI/ML engineer, Bangalore). The audience is mainly recruiters hiring for full-time AI/ML roles.
-The whole site is one long scroll split into 9 "scenes", framed as a 90-minute football match (he captained Karnataka's U-17 team to a national gold).
+The whole site is one long scroll split into 10 "scenes", framed as a 90-minute football match (he captained Karnataka's U-17 team to a national gold).
 
 Planning docs live in `Claude/` (gitignored, local only):
 - `07_STORY_BIBLE.md`: facts about him
@@ -54,18 +54,21 @@ public/images/          photos (see README there)
 ```
 
 ## Scenes
+Page order (2026-11-07, for the person hiring): Hero → Experience → Work → Skills → Problems → Story → How I work → Outside work → Contact. Work starts about 3.5 screens down.
+
 | # | File | What happens | 3D? |
 |---|---|---|---|
 | 00+01 | `sections/Hero.tsx` | One stage, three parts. **Loader** (1px line, real-loading counter, shatter, overlay wipes up). **Screen 1** has only the greeting: "Hi, I'm" (serif italic), MAYUKH (Archivo 900, split into letters that rise through masks) and BANERJEE (Archivo 200, wipes in), both fitted to one width in JS, plus the B&W suit portrait in an arch with an offset outline and a **scroll cue** (a turning ring of text around a bobbing arrow, teal-free, clickable). Extras: a thin "scanner" band that inverts the name every ~8s, cursor parallax on the photo and outline, a soft light that follows the cursor on the photo, and letters near the cursor lift. **Scroll** (desktop, pinned `PIN_SCREENS` screens): the photo frame holds a vertical strip of two photos and the strip is pulled DOWN, so the smiling **colour** photo (`hello-portrait.webp`) drops in from the top while the suit leaves through the bottom; the name rises out; the hero builds in on the left (headline, CTAs, pickable proof cards) with the detail card and the "open to roles" badge on the photo. A soft snap (`TL_READY`) lands one flick exactly on the hero, and scrolling back up returns to screen 1. The nav and match clock stay hidden while screen 1 is up (`html[data-intro="1"] .site-chrome`). **Phones:** two normal screens; the smiling photo is lowered into its arch when it scrolls in. The scroll timeline is only built after the entrance finishes (`phase === "done"`), or the two fight over the letters. The detail card's overhang is clamped to the free room (`CARD_OVERHANG`). Never use Tailwind `translate` on GSAP-animated elements. | no |
+| 01b | `sections/Experience.tsx` | Black. The record: role, dates, place for Easehawk (AI Engineer, Intern) and E-Cell, then education (B.Tech IT, VIT, GPA 8.56, graduating June 2027). | no |
 | 02 | `sections/Statement.tsx` | Paper. The claim sits small in the centre, surrounded by 5 quiet grey notes (the real problems behind the projects). Pinned: each note is "said out loud" centre stage, then settles in black with "→ became X" linking to its project. On mobile it's a list that darkens as you read. | no |
 | 03 | `sections/Origin.tsx` | Black. "How I got here": 4 chapters (The pitch / A calculator / The backup / Day one) with a sticky chapter index on desktop. Each chapter is one plain paragraph (plus one line in his voice where it adds meaning) and ONE module that adds something the words don't: the football record table (U-17 1st in teal), a working calculator (`components/story/Calculator.tsx`: tap or type, precedence, decimals, %, backspace, keyboard only while hovered or focused), the 200-people counter (teal), and the list of live products he owns the AI on. | no |
 | 04 | `sections/HowIWork.tsx` | Research-first copy, depth ladder, and **TinyLM**: a real trigram model trained on the site's own text, showing live next-word probabilities. | no |
-| 05 | `sections/Work.tsx` | Moxsend, Scheduler AI, EcoLoop, Evoke. Giant cropped names, one proving visual each, `→` opens a black overlay (headline, receipt, summary, the extra detail, stack, GitHub link). Each project has `headline` / `summary` / `detail`; the overlay never repeats the card. Scheduler AI's visual is the booking as it flows plus the owner's afternoon filling in. | Moxsend pipeline |
-| 06 | `sections/Toolkit.tsx` | Op-ed columns. Honest labels: shipped / built by hand / used. | no (on purpose) |
+| 05 | `sections/Work.tsx` | Moxsend, Scheduler AI, EcoLoop, Evoke, then an "Also built" row (LeBy). Giant cropped names, one proving visual each, `→` opens a black overlay: headline, receipt, summary, detail, the extra numbers with context, stack, links (code, live demo), and a "how it works" flow. Each project has `headline` / `summary` / `detail` / `flow` / `numbers`; the overlay never repeats the card. | Moxsend pipeline |
+| 06 | `sections/Toolkit.tsx` | Op-ed columns with honest labels (shipped / built by hand / used), then "The full list" (every tool from the resume, grouped, for people searching by stack), then certificates. | no (on purpose) |
 | 07 | `sections/OffThePitch.tsx` | Paper. How he keeps it together (the diary), then the quiet "proud" line. The diary photo only shows if `public/images/diary.jpg` exists; nothing is made up. | no |
 | 08 | `sections/FullTime.tsx` | Vision, "Say hi.", email copy, footer. Behind it, a 4-3-3 formation connects into a network; the last edge is teal. | Formation |
 
-Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones) and the nav with `mix-blend-mode: difference`. The old `[ 30 SEC ]` sheet was removed (2026-11-07): it listed the same four items as the hero cards.
+Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones) and the nav with `mix-blend-mode: difference`, which includes a Resume link. The old `[ 30 SEC ]` sheet was removed (2026-11-07): it listed the same four items as the hero cards.
 
 ## Hard rules
 1. **Copy only lives in `data/portfolio.ts`** (it is the source of truth now; `Claude/08` is older). Never hardcode text in JSX.
@@ -97,14 +100,16 @@ Originals go in `photos/` (gitignored). Run `npm run photos` (`scripts/prepare-p
 - [x] Hero portrait in (2026-11-07); hero redesigned to the light editorial layout with pickable cards
 - [x] Statement redesigned: problems "said out loud", each linking to what it became
 - [ ] `football.jpg`, `diary.jpg` → `photos/`, then `npm run photos`
-- [ ] `public/resume.pdf` (linked from the contact section; 404 until added. His resume has his phone number on it, so use a version without it)
+- [x] Resume: `public/Mayukh-Banerjee-Resume.pdf` (copied from `C:\Mayukh Main\Mayukh Banerjee Resume.pdf`), linked from the nav, the hero and contact. Replace the file when the resume changes.
 - [ ] Confirm with Easehawk that competitor names and Moxsend details are OK to publish
 - [ ] Mayukh to read all copy in `data/portfolio.ts` and mark anything that doesn't sound like him (rewritten 2026-11-07 after he said the English wasn't good and repeated itself)
 - [ ] Diary: no photo yet, so that section is text only. Save a photo as `photos/diary.jpg` and run `npm run photos`.
 - [ ] Story dates: only May 2026 (Easehawk) and 2025 (E-Cell, from the resume) are known. Football years still missing.
 - [ ] Open facts: U-15/U-17 years and tournament name, Evoke paper link, EcoLoop result, E-Cell event name
-- [ ] GitHub repo + Vercel import; set the real domain in `app/layout.tsx` (`url`)
-- [ ] OG image (static render of the hero mask frame)
+- [ ] Vercel: `mayukh-sable.vercel.app` returned 404 on 2026-11-07, so the deploy isn't live yet
+- [ ] Waiting on Mayukh: Evoke paper venue + link, start date, AI assistant yes/no (+ API key), Easehawk OK to name competitors
+- [ ] GitHub hygiene (his side): Evoke has no README; Evoke and Scheduler AI repos have no description; profile has no bio; demo URL `scheduler-ai-haha` reads unserious
+- [x] Link preview: `public/og.png` (1200x630), wired in `app/layout.tsx`. Site URL there is `https://mayukh-sable.vercel.app` (the repo's homepage); change `url` if the live address differs.
 
 ## Commit format
 `feat: section-[XX]-[name] complete` for scenes; conventional commits otherwise.

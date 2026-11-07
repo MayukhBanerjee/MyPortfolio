@@ -72,6 +72,18 @@ export default function Toolkit() {
       </div>
 
       <div className="tk-certs mt-24">
+        <p className="mono text-[var(--mute)]">[ {toolkit.groupsLabel} ]</p>
+        <dl className="mt-6 grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12">
+          {toolkit.groups.map(([k, v]) => (
+            <div key={k} className="tk-cert grid grid-cols-[8.5rem_1fr] gap-4 border-t border-[var(--line-dark)] py-4">
+              <dt className="mono pt-1 text-[var(--mute)]">{k}</dt>
+              <dd className="text-[16px] leading-relaxed text-[var(--paper)]/85">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <div className="tk-certs mt-20">
         <p className="mono text-[var(--mute)]">[ {certificates.label} ]</p>
         <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-8">
           {certificates.items.map((c) => (

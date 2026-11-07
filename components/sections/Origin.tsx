@@ -87,14 +87,6 @@ export default function Origin() {
           0
         );
 
-        gsap.from(".pr-row", {
-          opacity: 0,
-          y: 14,
-          duration: 0.4,
-          stagger: 0.1,
-          ease: "power3.out",
-          scrollTrigger: { trigger: ".pr-list", start: "top 80%", once: true },
-        });
       });
       return () => mm.revert();
     },
@@ -145,7 +137,7 @@ export default function Origin() {
         {/* chapters */}
         <div className="lg:col-span-9">
           {origin.chapters.map((c, i) => (
-            <Chapter key={c.id} chapter={c} index={i} onGo={go} />
+            <Chapter key={c.id} chapter={c} index={i} />
           ))}
         </div>
       </div>
@@ -153,15 +145,7 @@ export default function Origin() {
   );
 }
 
-function Chapter({
-  chapter: c,
-  index,
-  onGo,
-}: {
-  chapter: StoryChapter;
-  index: number;
-  onGo: (target: string, offset?: number) => void;
-}) {
+function Chapter({ chapter: c, index }: { chapter: StoryChapter; index: number }) {
   return (
     <article
       id={`story-${c.id}`}
@@ -187,18 +171,19 @@ function Chapter({
         )}
       </div>
 
-      <div className="st-in flex items-start lg:col-span-4 lg:items-center lg:justify-end">
-        <Module kind={c.module} onGo={onGo} />
-      </div>
+      {c.module && (
+        <div className="st-in flex items-start lg:col-span-4 lg:items-center lg:justify-end">
+          <Module kind={c.module} />
+        </div>
+      )}
     </article>
   );
 }
 
-function Module({ kind, onGo }: { kind: StoryChapter["module"]; onGo: (target: string, offset?: number) => void }) {
+function Module({ kind }: { kind: NonNullable<StoryChapter["module"]> }) {
   if (kind === "scoreboard") return <Scoreboard />;
   if (kind === "calculator") return <Calculator caption={origin.calculatorCaption} />;
-  if (kind === "counter") return <Counter />;
-  return <Products onGo={onGo} />;
+  return <Counter />;
 }
 
 /* ---------- 01: the record (the numbers the story leaves out) ---------- */
@@ -251,41 +236,6 @@ function Counter() {
         <span className="ct-bar absolute inset-0 block origin-left bg-[var(--paper)]" />
       </span>
       <p className="mono mt-3 text-[10px] text-[var(--mute)]">{origin.counter.label}</p>
-    </div>
-  );
-}
-
-/* ---------- 04: the products (the story says "live products"; this says which) ---------- */
-function Products({ onGo }: { onGo: (target: string, offset?: number) => void }) {
-  return (
-    <div className="w-full max-w-[26rem]">
-      <p className="mono mb-3 text-[10px] text-[var(--mute)]">[ {origin.products.label} ]</p>
-      <ul className="pr-list">
-        {origin.products.items.map(([name, what, href]) => (
-          <li key={name} className="pr-row border-t border-[var(--line-dark)] last:border-b">
-            {href ? (
-              <button
-                onClick={() => onGo(href, 0)}
-                className="group flex w-full items-baseline justify-between gap-4 py-4 text-left"
-              >
-                <span className="text-[19px]" style={{ fontWeight: 600 }}>
-                  {name}
-                </span>
-                <span className="mono text-[var(--mute)] transition-colors group-hover:text-[var(--paper)]">
-                  {what} →
-                </span>
-              </button>
-            ) : (
-              <div className="flex items-baseline justify-between gap-4 py-4">
-                <span className="text-[19px]" style={{ fontWeight: 600 }}>
-                  {name}
-                </span>
-                <span className="mono text-[var(--mute)]">{what}</span>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

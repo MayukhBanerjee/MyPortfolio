@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { nav, site } from "@/data/portfolio";
+import { nav, navResume, site } from "@/data/portfolio";
 import { useSite } from "@/components/Providers";
 
 export default function Nav() {
@@ -50,8 +50,14 @@ export default function Nav() {
               [ {n.label} ]
             </a>
           ))}
+          <a href={site.links.resume} target="_blank" rel="noreferrer" className="transition-opacity hover:opacity-60">
+            [ {navResume} ↓ ]
+          </a>
         </nav>
         <div className="mono flex items-center gap-5 md:hidden">
+          <a href={site.links.resume} target="_blank" rel="noreferrer">
+            [ {navResume} ]
+          </a>
           <button onClick={() => setOpen(true)} aria-expanded={open}>
             Menu
           </button>

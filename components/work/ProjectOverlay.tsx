@@ -79,9 +79,18 @@ export default function ProjectOverlay({ project, onClose }: { project: Project;
               {p}
             </p>
           ))}
+          {project.numbers.length > 0 && (
+            <ul className="po-in mt-10 border-t border-[var(--line-dark)]">
+              {project.numbers.map((n) => (
+                <li key={n} className="border-b border-[var(--line-dark)] py-3 text-[15px] leading-snug text-[var(--paper)]/85">
+                  {n}
+                </li>
+              ))}
+            </ul>
+          )}
           <p className="po-in mono mt-10 normal-case tracking-normal text-[var(--mute)]">{project.stack}</p>
           {project.links.length > 0 && (
-            <div className="po-in mono mt-6 flex gap-6">
+            <div className="po-in mono mt-6 flex flex-wrap gap-x-6 gap-y-3">
               {project.links.map((l) => (
                 <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="hover:opacity-60">
                   [ {l.label} → ]
@@ -90,6 +99,20 @@ export default function ProjectOverlay({ project, onClose }: { project: Project;
             </div>
           )}
         </div>
+      </div>
+      {/* how it works, left to right */}
+      <div className="po-in mt-20">
+        <p className="mono text-[var(--mute)]">[ how it works ]</p>
+        <ol className="mt-5 flex flex-wrap items-stretch gap-y-3">
+          {project.flow.map((step, i) => (
+            <li key={step} className="flex items-center">
+              <span className="border border-[var(--line-dark)] px-4 py-3 text-[14px] leading-snug text-[var(--paper)]/90">
+                {step}
+              </span>
+              {i < project.flow.length - 1 && <span className="mono px-3 text-[var(--mute)]">→</span>}
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   );
