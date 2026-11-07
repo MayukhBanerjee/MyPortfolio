@@ -106,7 +106,7 @@ Originals go in `photos/` (gitignored). Run `npm run photos` (`scripts/prepare-p
 - [ ] Diary: no photo yet, so that section is text only. Save a photo as `photos/diary.jpg` and run `npm run photos`.
 - [ ] Story dates: only May 2026 (Easehawk) and 2025 (E-Cell, from the resume) are known. Football years still missing.
 - [ ] Open facts: U-15/U-17 years and tournament name, Evoke paper link, EcoLoop result, E-Cell event name
-- [ ] Vercel: `mayukh-sable.vercel.app` returned 404 on 2026-11-07, so the deploy isn't live yet
+- [x] Vercel: project `mayukh` (team mayukh647-gmailcoms-projects), live at `https://mayukh-sable.vercel.app`, auto-deploys on push to `main`. It was imported as "Other" and served only `public/`; `vercel.json` now forces the Next.js framework. Don't delete it.
 - [ ] Waiting on Mayukh: Evoke paper venue + link, start date, AI assistant yes/no (+ API key), Easehawk OK to name competitors
 - [ ] GitHub hygiene (his side): Evoke has no README; Evoke and Scheduler AI repos have no description; profile has no bio; demo URL `scheduler-ai-haha` reads unserious
 - [x] Link preview: `public/og.png` (1200x630), wired in `app/layout.tsx`. Site URL there is `https://mayukh-sable.vercel.app` (the repo's homepage); change `url` if the live address differs.
