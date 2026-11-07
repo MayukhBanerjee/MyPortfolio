@@ -77,6 +77,7 @@ export default function Work() {
       {projects.map((p, i) => (
         <article
           key={p.slug}
+          id={`work-${p.slug}`}
           className="wk-panel relative flex min-h-[100svh] flex-col justify-center border-b border-[var(--line-light)] py-20"
         >
           {/* the name, bleeding off the left edge */}

@@ -68,6 +68,35 @@ export const about = {
 export const statement = {
   label: "problems",
   lines: ["I keep noticing problems", "that nobody has really", "said out loud."],
+  sub: "A few I couldn't stop thinking about:",
+  /** Each one starts as a quiet note, gets "said out loud", then shows what it became. */
+  notes: [
+    {
+      text: "Sunday at the salon. It's packed, so you leave, and the owner never knew you came.",
+      became: "Scheduler AI",
+      href: "#work-scheduler-ai",
+    },
+    {
+      text: "The AC runs just as hard in an empty room as in a full one.",
+      became: "EcoLoop",
+      href: "#work-ecoloop",
+    },
+    {
+      text: "Most cold emails read like they were written for nobody in particular.",
+      became: "my work at Moxsend",
+      href: "#work-moxsend",
+    },
+    {
+      text: "You can't pick up the phone and talk to someone you've lost.",
+      became: "Evoke",
+      href: "#work-evoke",
+    },
+    {
+      text: "Knowing your own rights shouldn't take a law degree.",
+      became: "LeBy",
+      href: null,
+    },
+  ] as { text: string; became: string; href: string | null }[],
   body: "Everyone runs into them. Nobody's written them down yet. That's where most of my thinking goes, and it's why the things I build tend to feel a bit different.",
   aside:
     "I'll admit it sometimes means I end up solving something that wasn't in the requirements doc. I've made my peace with that.",
@@ -298,6 +327,7 @@ export function corpus(): string {
     hero.descriptor,
     ...about.paragraphs,
     statement.lines.join(" "),
+    ...statement.notes.map((n) => n.text),
     statement.body,
     statement.aside,
     ...origin.chapters.map((c) => c.parts.map((p) => (typeof p === "string" ? p : p.accent)).join("")),
