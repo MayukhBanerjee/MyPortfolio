@@ -83,7 +83,7 @@ Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones) an
 5. Every scroll animation sits inside `gsap.matchMedia()` with `MQ.motion` (reduced motion gets the static end state).
 6. Pinned triggers need `refreshPriority` in page order (statement 2, origin 1), or start positions break.
 7. 3D canvases mount only near the viewport (`useNearViewport`) and render only while visible (`frameloop`).
-8. Never put salary, phone number or address on the site.
+8. Never put salary or address on the site. The phone number appears in the contact section only (Mayukh asked for it on 2026-11-07); nowhere else, and not in the JSON-LD.
 9. Global CSS goes inside `@layer base` (elements) or `@layer components` (classes like `.mono`, `.display`). Unlayered CSS beats Tailwind utilities and silently breaks `text-*`, `leading-*` and so on.
 
 ## Photos

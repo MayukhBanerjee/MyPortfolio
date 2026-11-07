@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { gsap, MQ, useGSAP } from "@/lib/gsap";
-import { toolkit } from "@/data/portfolio";
+import { certificates, toolkit } from "@/data/portfolio";
 import SectionLabel from "@/components/ui/SectionLabel";
 
 /** Section 06 — an op-ed, not a logo wall. Honest labels: shipped, built by hand, used. No 3D here on purpose. */
@@ -24,6 +24,14 @@ export default function Toolkit() {
           ease: "power3.out",
           stagger: 0.1,
           scrollTrigger: { trigger: ".tk-right", start: "top 78%", once: true },
+        });
+        gsap.from(".tk-cert", {
+          y: 18,
+          opacity: 0,
+          duration: 0.45,
+          ease: "power3.out",
+          stagger: 0.08,
+          scrollTrigger: { trigger: ".tk-certs", start: "top 85%", once: true },
         });
       });
       return () => mm.revert();
@@ -61,6 +69,28 @@ export default function Toolkit() {
           <p className="mono mt-14 text-[var(--mute)]">[ {toolkit.right.learnLabel} ]</p>
           <p className="body-copy mt-6 text-[var(--paper)]/75">{toolkit.right.learn}</p>
         </div>
+      </div>
+
+      <div className="tk-certs mt-24">
+        <p className="mono text-[var(--mute)]">[ {certificates.label} ]</p>
+        <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-8">
+          {certificates.items.map((c) => (
+            <li key={c.name} className="tk-cert">
+              <a
+                href={c.href}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-baseline justify-between gap-4 border-t border-[var(--line-dark)] py-5"
+              >
+                <span>
+                  <span className="block text-[clamp(18px,1.5vw,22px)] leading-tight">{c.name}</span>
+                  <span className="mono mt-2 block text-[var(--mute)]">{c.issuer}</span>
+                </span>
+                <span className="mono text-[var(--mute)] transition-colors group-hover:text-[var(--paper)]">↗</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

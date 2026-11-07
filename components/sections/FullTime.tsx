@@ -100,6 +100,9 @@ export default function FullTime() {
                 <span className="mono mt-3 block whitespace-nowrap text-[var(--mute)] md:ml-4 md:mt-0 md:inline md:align-middle">{copied ? "[ copied ]" : "[ copy ]"}</span>
               </button>
               <div className="mono mt-8 flex flex-wrap gap-x-8 gap-y-3">
+                <a href={site.phoneHref} className="hover:opacity-60">
+                  [ {site.phone} ]
+                </a>
                 <a href={site.links.linkedin} target="_blank" rel="noreferrer" className="hover:opacity-60">
                   [ linkedin ]
                 </a>

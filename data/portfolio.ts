@@ -35,6 +35,9 @@ export const site = {
   timezone: "Asia/Kolkata",
   tzLabel: "IST",
   email: "mayukhbanerjee011@gmail.com",
+  /** Shown in the contact section only, at Mayukh's request (2026-11-07). */
+  phone: "+91 96208 68983",
+  phoneHref: "tel:+919620868983",
   links: {
     linkedin: "https://www.linkedin.com/in/mayukh-banerjee",
     github: "https://github.com/MayukhBanerjee",
@@ -325,6 +328,16 @@ export const toolkit = {
     learn:
       "Production backend and system design. If the data going in and out of an AI pipeline isn't handled well, it doesn't matter how good the model is. It falls over in production.",
   },
+};
+
+export const certificates = {
+  label: "Certificates",
+  items: [
+    { name: "IBM DevOps", issuer: "IBM", href: "https://courses.vit.skillsnetwork.site/certificates/db3a3a534aa4444b8424c3609324e516" },
+    { name: "AWS Cloud Architect", issuer: "AWS", href: "https://www.credly.com/badges/a1347bf7-61f1-446c-96b6-e003890ecf61/public_url" },
+    { name: "Python Developer Course", issuer: "Udemy", href: "https://www.udemy.com/certificate/UC-939df30c-b65b-4f80-bc7b-c89839e0b8ff/" },
+    { name: "Machine Learning A-Z", issuer: "Udemy", href: "https://www.udemy.com/certificate/UC-747394f4-0307-495b-8331-2e6a35df23e2/" },
+  ] as { name: string; issuer: string; href: string }[],
 };
 
 export const pitch = {
