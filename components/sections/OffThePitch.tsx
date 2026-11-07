@@ -7,38 +7,24 @@ import { images, pitch } from "@/data/portfolio";
 import SectionLabel from "@/components/ui/SectionLabel";
 
 /**
- * Section 07 — football, the diary, and one quiet line.
- * The reader makes the connection between sport and work themselves.
+ * Section 07 — outside work. The diary, then one quiet line.
+ * (Football lives in the story chapters now, so it isn't told twice.)
  */
 export default function OffThePitch() {
   const ref = useRef<HTMLElement>(null);
-  const hasFootball = useImageAvailable(images.football);
   const hasDiary = useImageAvailable(images.diary);
 
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
       mm.add(MQ.motion, () => {
-        // Under-17. / All India. / Gold.  — "Gold." lands one beat late
-        const lines = gsap.utils.toArray<HTMLElement>(".pt-stack > span");
-        const tl = gsap.timeline({ scrollTrigger: { trigger: ".pt-stack", start: "top 75%", once: true } });
-        lines.forEach((l, i) =>
-          tl.fromTo(
-            l.firstElementChild,
-            { yPercent: 105 },
-            { yPercent: 0, duration: 0.45, ease: "power3.out" },
-            i === lines.length - 1 ? "+=0.55" : i * 0.14
-          )
-        );
-        gsap.from(".pt-body > *", {
+        gsap.from(".dy-intro", {
           y: 24,
           opacity: 0,
-          duration: 0.5,
+          duration: 0.6,
           ease: "power3.out",
-          stagger: 0.08,
-          scrollTrigger: { trigger: ".pt-body", start: "top 80%", once: true },
+          scrollTrigger: { trigger: ".dy-intro", start: "top 80%", once: true },
         });
-
         // the diary: entries get struck through as you scroll
         gsap.to(".dy-strike", {
           scaleX: 1,
@@ -46,14 +32,12 @@ export default function OffThePitch() {
           stagger: 0.5,
           scrollTrigger: { trigger: ".dy-card", start: "top 70%", end: "bottom 45%", scrub: true },
         });
-
-        // the quiet line holds for a full scroll length
+        // the quiet line
         gsap.fromTo(
           ".pt-proud",
           { opacity: 0 },
           {
             opacity: 1,
-            duration: 1,
             ease: "none",
             scrollTrigger: { trigger: ".pt-quiet", start: "top 60%", end: "top 20%", scrub: true },
           }
@@ -66,61 +50,19 @@ export default function OffThePitch() {
   );
 
   return (
-    <section ref={ref} id="pitch" aria-label="Off the pitch" className="on-paper relative pt-28">
+    <section ref={ref} id="pitch" aria-label="Outside work" className="on-paper relative pt-28">
       <div className="px-[var(--gutter)]">
-        <SectionLabel label="before code" />
+        <SectionLabel label={pitch.label} />
       </div>
 
-      {/* part 1: the photo and the stack */}
-      <div className="mt-12 grid grid-cols-1 items-end gap-12 lg:grid-cols-12">
-        <figure className="relative aspect-[4/5] w-full overflow-hidden lg:col-span-7 lg:aspect-[5/6]">
-          {hasFootball ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={images.football} alt="Mayukh playing football" className="h-full w-full object-cover grayscale" />
-          ) : (
-            <div className="photo-fallback flex h-full w-full items-end p-5">
-              <span className="mono text-[var(--mute)]">[ photo · football.jpg ]</span>
-            </div>
-          )}
-        </figure>
-
-        <div className="px-[var(--gutter)] lg:col-span-5 lg:pl-0">
-          <h2 className="pt-stack display text-[clamp(56px,7.6vw,140px)] leading-[0.88]" style={{ fontStretch: "95%" }}>
-            {pitch.stack.map((s) => (
-              <span key={s} className="mask-line">
-                <span>{s}</span>
-              </span>
-            ))}
-          </h2>
-          <div className="pt-body mt-10">
-            {pitch.body.map((b, i) => (
-              <p key={i} className="body-copy mt-5 text-[var(--black)]/80">
-                {b}
-              </p>
-            ))}
-            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-[var(--line-light)] pt-6 sm:grid-cols-3">
-              {pitch.stats.map(([v, l]) => (
-                <div key={l}>
-                  <dt className="display text-[clamp(26px,2.4vw,38px)]" style={{ fontWeight: 800, fontStretch: "90%" }}>
-                    {v}
-                  </dt>
-                  <dd className="mono mt-1 text-[var(--mute-dark)]">{l}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </div>
-
-      {/* part 2: the diary */}
-      <div className="mt-36 grid grid-cols-1 items-center gap-14 px-[var(--gutter)] lg:grid-cols-12">
+      <div className="mt-16 grid grid-cols-1 items-center gap-14 px-[var(--gutter)] lg:grid-cols-12">
         <div className="lg:col-span-5">
-          <p className="voice text-[clamp(24px,2.3vw,38px)] leading-[1.2]">{pitch.diaryIntro}</p>
+          <p className="dy-intro voice text-[clamp(24px,2.3vw,38px)] leading-[1.2]">{pitch.diaryIntro}</p>
         </div>
         <div className="dy-card relative lg:col-span-5 lg:col-start-8">
           {hasDiary ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={images.diary} alt="A page from my diary" className="w-full rotate-[-1.5deg] object-cover shadow-none" />
+            <img src={images.diary} alt="A page from my diary" className="w-full rotate-[-1.5deg] object-cover" />
           ) : (
             <div className="relative rotate-[-1.2deg] border border-[var(--black)]/20 bg-[#f7f5f1] px-8 pb-10 pt-8">
               <p className="mono mb-6 text-[var(--mute-dark)]">to do</p>
@@ -138,8 +80,7 @@ export default function OffThePitch() {
         </div>
       </div>
 
-      {/* part 3: the quiet line */}
-      <div className="pt-quiet flex min-h-[110svh] items-center justify-center px-[var(--gutter)]">
+      <div className="pt-quiet flex min-h-[100svh] items-center justify-center px-[var(--gutter)]">
         <p className="pt-proud voice max-w-[22em] text-center text-[clamp(20px,1.8vw,28px)] leading-[1.35]">{pitch.proud}</p>
       </div>
     </section>

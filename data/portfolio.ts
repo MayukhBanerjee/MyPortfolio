@@ -146,49 +146,83 @@ export const statement = {
     "I'll admit it sometimes means I end up solving something that wasn't in the requirements doc. I've made my peace with that.",
 };
 
+export type StoryChapter = {
+  id: string;
+  when: string;
+  title: string;
+  quote: string;
+  body: string[];
+  module: "scoreboard" | "calculator" | "log" | "dayone";
+};
+
 export const origin = {
-  label: "how it started",
+  label: "my story",
+  title: "How I got here",
+  intro: "Four moments, in the order they happened.",
   chapters: [
     {
-      numeral: "06",
-      label: "Karnataka · Football",
-      parts: [
-        "Six years on my school team, two as captain. Then Karnataka: second at under-15, and at under-17, with me as captain, ",
-        { accent: "gold" },
-        ".",
+      id: "pitch",
+      when: "School years",
+      title: "The pitch",
+      quote: "Football taught me how to lose, and how to show up again the next day.",
+      body: [
+        "I played for my school team for six years and captained it for the last two. Three clubs picked me up along the way, and I got to play for Karnataka at the national level.",
+        "At under-15 we finished second in the All India tournament. At under-17 I was captain, and we won it.",
       ],
+      module: "scoreboard",
     },
     {
-      numeral: "2+2",
-      resolve: "4",
-      label: "Class 10 · A calculator",
-      parts: [
-        "It started with the calculator program everyone writes in school. Mine wasn't special. What stayed with me was how much a few lines could do.",
+      id: "calculator",
+      when: "Class 10",
+      title: "A calculator",
+      quote: "What stayed with me was how much a few lines of code could do for someone.",
+      body: [
+        "It started in 10th grade, with the calculator program everyone writes in school. Mine wasn't anything special.",
+        "But I understood early why computers were built in the first place, and I've wanted to build with them ever since. College just made it official.",
       ],
+      module: "calculator",
     },
     {
-      numeral: "200",
-      label: "E-Cell · VIT",
-      parts: [
-        "The team couldn't build what we'd planned for the event. I'd made a rough version myself, just to explain the idea. That's what ran on the day, for ",
-        { accent: "200" },
-        " people.",
+      id: "backup",
+      when: "College, E-Cell",
+      title: "The backup",
+      quote: "After that, I stopped thinking of tech as something I was studying. It was what I wanted to build my life around.",
+      body: [
+        "At E-Cell in college, I handled the technical side of our events. For one of them, I'd worked out how the tech should run, and the team couldn't get it built.",
+        "I had a rough version I'd made myself, mostly to show people what I meant. On the day of the event, that's what we ran.",
       ],
+      module: "log",
     },
     {
-      numeral: "100K",
-      label: "Easehawk · Moxsend",
-      parts: [
-        "I joined in May 2026 with no industry experience. Now I own the AI that writes a separate email for every lead, up to a hundred thousand in one campaign.",
+      id: "dayone",
+      when: "May 2026",
+      title: "Day one",
+      quote: "I joined with no industry experience. My projects were the closest thing I had.",
+      body: [
+        "Easehawk builds Moxsend, a cold email platform going up against much bigger companies. Our edge is how deep the AI goes, so that's the part I own.",
+        "Every lead in a campaign gets its own email written by AI, up to a hundred thousand at a time. I also built the inbox side, which reads the replies and tells the user which leads are worth their time.",
       ],
+      module: "dayone",
     },
-  ] as {
-    numeral: string;
-    resolve?: string;
-    label: string;
-    parts: (string | { accent: string })[];
-  }[],
-  turn: "After the E-Cell event, I stopped thinking of tech as something I was studying. It was what I wanted to build my life around.",
+  ] as StoryChapter[],
+  scoreboard: [
+    { what: "School team", score: "6 yrs", note: "captain for the last 2" },
+    { what: "Clubs", score: "3", note: "picked up along the way" },
+    { what: "Karnataka U-15", score: "2nd", note: "All India nationals" },
+    { what: "Karnataka U-17", score: "1st", note: "All India nationals, as captain", accent: true },
+  ] as { what: string; score: string; note: string; accent?: boolean }[],
+  log: [
+    ["Plan", "I worked out how the tech for the event should run."],
+    ["Problem", "The team couldn't get it built."],
+    ["Backup", "A rough version I'd made myself, just to explain the idea."],
+    ["The day", "That's what we ran."],
+  ] as [string, string][],
+  logLive: 200,
+  dayOne: {
+    before: ["No industry experience", "Projects were the closest thing I had"],
+    now: ["I own the AI behind every email", "Up to 100,000 leads in one campaign", "An inbox that ranks replies by intent"],
+  },
+  calculatorCaption: "the one everyone writes in school. this one works, try it",
 };
 
 export const method = {
@@ -312,18 +346,7 @@ export const toolkit = {
 };
 
 export const pitch = {
-  stack: ["Under-17.", "All India.", "Gold."],
-  body: [
-    "Six years on my school team, the last two as captain. Three clubs picked me up along the way, and I got to play for Karnataka at the nationals. At under-15 we finished second. At under-17 I was captain, and we won it.",
-    "Football taught me how to work with a team, how to take a loss and show up again the next day, and how to keep going after something when it isn't going your way. I use all of that at work, more than I expected to.",
-  ],
-  stats: [
-    ["6 yrs", "school team"],
-    ["2 yrs", "captain"],
-    ["3", "clubs"],
-    ["U-15", "national runners-up"],
-    ["U-17", "captain, national champions"],
-  ] as [string, string][],
+  label: "outside work",
   diaryIntro:
     "Honestly, I don't always know how I juggle college, work and everything else. What I do have is a diary. Everything I need to do goes in it with a deadline, whatever kind of day I'm having, and it gets done before the deadline.",
   /** Placeholder entries until a photo of the real diary arrives. */
@@ -376,15 +399,13 @@ export function corpus(): string {
     ...statement.notes.map((n) => n.text),
     statement.body,
     statement.aside,
-    ...origin.chapters.map((c) => c.parts.map((p) => (typeof p === "string" ? p : p.accent)).join("")),
-    origin.turn,
+    ...origin.chapters.flatMap((c) => [c.quote, ...c.body]),
     method.headline.join(" "),
     method.body,
     method.depth,
     method.confidence,
     ...projects.flatMap((p) => [...p.body, ...p.long]),
     ...toolkit.right.body,
-    ...pitch.body,
     pitch.diaryIntro,
     pitch.proud,
     ...close.next,

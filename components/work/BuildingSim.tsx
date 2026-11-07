@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useInView, useReducedMotion } from "@/lib/hooks";
+import { mulberry32 } from "@/lib/lm/trigram";
 
 /**
  * EcoLoop: a floor plan from above. People move between zones,
@@ -20,10 +21,10 @@ const PEOPLE = 14;
 type Person = { zone: number; x: number; y: number; tx: number; ty: number };
 type Climate = { temp: number; co2: number };
 
-const rnd = (a: number, b: number) => a + Math.random() * (b - a);
-function spot(z: number) {
+function spot(z: number, rand: () => number = Math.random) {
   const Z = ZONES[z];
-  return { x: rnd(Z.x + 14, Z.x + Z.w - 14), y: rnd(Z.y + 34, Z.y + Z.h - 12) };
+  const r = (a: number, b: number) => a + rand() * (b - a);
+  return { x: r(Z.x + 14, Z.x + Z.w - 14), y: r(Z.y + 34, Z.y + Z.h - 12) };
 }
 
 export default function BuildingSim() {
@@ -36,9 +37,11 @@ export default function BuildingSim() {
   const state = useRef<{ people: Person[]; climate: Climate[] } | null>(null);
 
   if (!state.current) {
+    // seeded, so the server render and the first client render match exactly
+    const seeded = mulberry32(42);
     const people: Person[] = Array.from({ length: PEOPLE }, (_, i) => {
       const zone = i % 3 === 0 ? 0 : i % 3 === 1 ? 1 : 3;
-      const p = spot(zone);
+      const p = spot(zone, seeded);
       return { zone, x: p.x, y: p.y, tx: p.x, ty: p.y };
     });
     state.current = { people, climate: ZONES.map(() => ({ temp: 26.5, co2: 430 })) };

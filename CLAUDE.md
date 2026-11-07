@@ -57,11 +57,11 @@ public/images/          photos (see README there)
 |---|---|---|---|
 | 00+01 | `sections/Hero.tsx` | Loader overlay (1px line, real-loading counter, line shatters, overlay wipes up), then a light editorial hero: intro + headline + CTAs on the left, B&W cutout portrait on a soft arch on the right, "open to roles" badge (teal dot). **Pickable cards**: 4 proof cards (Production AI / Research / Hackathon / Football); picking one swaps the dark detail card beside the portrait (metric, sparkline, one line). Cycles every 4.8s with a progress line until someone picks. Light parallax on scroll. | no |
 | 02 | `sections/Statement.tsx` | Paper. The claim sits small in the centre, surrounded by 5 quiet grey notes (the real problems behind the projects). Pinned: each note is "said out loud" centre stage, then settles in black with "→ became X" linking to its project. On mobile it's a list that darkens as you read. | no |
-| 03 | `sections/Origin.tsx` | Black. Pinned horizontal chapters with giant numerals: 06 / 2+2→4 / 200 / 100K. Vertical on mobile. | no |
+| 03 | `sections/Origin.tsx` | Black. "How I got here": 4 chapters (The pitch / A calculator / The backup / Day one) with a sticky chapter index on desktop. Each chapter has a title, a line in his voice (serif italic), 2 short paragraphs and one module: football record table (U-17 1st in teal), a working calculator that types 2+2= itself (`components/story/Calculator.tsx`), an event-day log with a live counter to 200 (teal), and a day-one vs now panel. | no |
 | 04 | `sections/HowIWork.tsx` | Research-first copy, depth ladder, and **TinyLM**: a real trigram model trained on the site's own text, showing live next-word probabilities. | no |
 | 05 | `sections/Work.tsx` | Moxsend → Scheduler AI → EcoLoop → Evoke. Giant cropped names, one proving visual each, `→` opens a black overlay. | Moxsend pipeline |
 | 06 | `sections/Toolkit.tsx` | Op-ed columns. Honest labels: shipped / built by hand / used. | no (on purpose) |
-| 07 | `sections/OffThePitch.tsx` | Football photo + "Under-17. All India. Gold.", diary entries struck through on scroll, then one quiet line. | no |
+| 07 | `sections/OffThePitch.tsx` | Paper. Outside work: the diary (entries struck through on scroll), then the quiet "proud" line. Football moved into the story so it isn't told twice. | no |
 | 08 | `sections/FullTime.tsx` | Vision, "Say hi.", email copy, footer. Behind it, a 4-3-3 formation connects into a network; the last edge is teal. | Formation |
 
 Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `[ 30 SEC ]` sheet (also the `H` key), nav with `mix-blend-mode: difference`.
@@ -71,8 +71,8 @@ Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `
 2. **Voice:** first person, no em dashes in site copy, no slogans or "Not X. Y." lines, no invented details. Test: would Mayukh say it to a recruiter on a call?
 3. **Teal `#00d4b4` = verified fact, max 5 uses, only on black:**
    1. hero "open to roles" badge dot
-   2. "gold" (Origin)
-   3. "200" (Origin)
+   2. U-17 "1st" (story scoreboard)
+   3. "200" (story event log)
    4. Moxsend 90%+ (overlay)
    5. last formation edge
 
@@ -100,6 +100,7 @@ Originals go in `photos/` (gitignored). Run `npm run photos` (`scripts/prepare-p
 - [ ] Confirm with Easehawk that competitor names and Moxsend details are OK to publish
 - [ ] Mayukh to sign off copy blocks added in code beyond doc 08: Scheduler/EcoLoop/Evoke "long" paragraphs, inbox paragraph, LM intro
 - [ ] Diary entries are placeholders until a photo of the real diary arrives
+- [ ] Story dates are vague on purpose (School years / Class 10 / College, E-Cell / May 2026). Get real years before adding any.
 - [ ] Open facts: U-15/U-17 years and tournament name, Evoke paper link, EcoLoop result, E-Cell event name
 - [ ] GitHub repo + Vercel import; set the real domain in `app/layout.tsx` (`url`)
 - [ ] OG image (static render of the hero mask frame)

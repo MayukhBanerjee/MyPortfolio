@@ -1,7 +1,8 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Html, Line, OrthographicCamera } from "@react-three/drei";
+import { Line, OrthographicCamera } from "@react-three/drei";
+import { CACHE_Y, LLM_X0, LLM_X1, MAIN_Y, RETRY_Y, WORLD_W } from "./pipeline-layout";
 import { useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
 
@@ -14,15 +15,9 @@ import * as THREE from "three";
 const COUNT = 900;
 const BATCH = 30;
 const SPEED = 1.15; // world units / second
-const WORLD_W = 10;
 
 type Kind = 0 | 1 | 2; // 0 = through the model, 1 = cache hit, 2 = fails once, retries
 
-const MAIN_Y = 0.55;
-const CACHE_Y = -0.45;
-const RETRY_Y = -1.35;
-const LLM_X0 = 0.4;
-const LLM_X1 = 2.0;
 
 function path(kind: Kind): THREE.Vector2[] {
   const P = (x: number, y: number) => new THREE.Vector2(x, y);
@@ -159,14 +154,6 @@ function Guide({ pts, opacity = 0.18 }: { pts: [number, number][]; opacity?: num
   );
 }
 
-function Label({ x, y, children, align = "left" }: { x: number; y: number; children: string; align?: "left" | "center" }) {
-  return (
-    <Html position={[x, y, 0]} center={align === "center"} zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-      <span className="mono whitespace-nowrap text-[9px] text-[var(--mute)]">{children}</span>
-    </Html>
-  );
-}
-
 function Camera() {
   const { size } = useThree();
   return <OrthographicCamera makeDefault position={[0, 0, 10]} zoom={size.width / WORLD_W} />;
@@ -196,13 +183,6 @@ export default function PipelineScene({ active, counterRef }: { active: boolean;
       <Guide pts={[[-3.2, MAIN_Y - 0.3], [-3.2, MAIN_Y + 0.3]]} opacity={0.5} />
       <Guide pts={[[-1.4, MAIN_Y - 0.3], [-1.4, MAIN_Y + 0.3]]} opacity={0.5} />
       <Rect x0={LLM_X0} x1={LLM_X1} y0={MAIN_Y - 0.32} y1={MAIN_Y + 0.32} opacity={0.8} />
-      <Label x={-4.8} y={MAIN_Y + 0.62}>leads</Label>
-      <Label x={-3.3} y={MAIN_Y + 0.62}>batch</Label>
-      <Label x={-1.5} y={MAIN_Y + 0.62}>cache?</Label>
-      <Label x={LLM_X0} y={MAIN_Y + 0.62}>model call</Label>
-      <Label x={-0.9} y={CACHE_Y - 0.16}>cache hit · skips the model</Label>
-      <Label x={-0.2} y={RETRY_Y - 0.16}>failed · retry lane</Label>
-      <Label x={3.9} y={MAIN_Y + 0.62}>sent</Label>
     </Canvas>
   );
 }
