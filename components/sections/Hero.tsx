@@ -32,23 +32,24 @@ export default function Hero() {
   /* ---------- hide everything before first paint so the entrance can play ---------- */
   useIsoLayoutEffect(() => {
     if (window.matchMedia(MQ.reduced).matches) return;
-    gsap.set(".h-in, .h-line > span, .h-portrait, .h-arch, .h-pop", { autoAlpha: 0 });
+    gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop", { autoAlpha: 0 });
   }, []);
 
   /* ---------- the entrance (after the loader, or straight away on a return visit) ---------- */
   const enter = useCallback((delay = 0) => {
     if (window.matchMedia(MQ.reduced).matches) {
-      gsap.set(".h-in, .h-line > span, .h-portrait, .h-arch, .h-pop", { autoAlpha: 1, clearProps: "transform" });
+      gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop", { autoAlpha: 1 });
       return;
     }
     const tl = gsap.timeline({ delay, defaults: { ease: "power3.out" } });
     tl.fromTo(
-      ".h-arch",
-      { autoAlpha: 1, scaleY: 0, transformOrigin: "50% 100%" },
-      { scaleY: 1, duration: 0.9, ease: "expo.out" },
+      ".h-frame",
+      { autoAlpha: 1, clipPath: "inset(100% 0% 0% 0%)" },
+      { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "expo.inOut" },
       0
     )
-      .fromTo(".h-portrait", { autoAlpha: 0, y: 70 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: "expo.out" }, 0.15)
+      .fromTo(".h-portrait", { scale: 1.18 }, { scale: 1, duration: 1.6, ease: "expo.out" }, 0.1)
+      .fromTo(".h-arch", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 1, ease: "expo.out" }, 0.5)
       .fromTo(".h-line > span", { autoAlpha: 1, yPercent: 108 }, { yPercent: 0, duration: 0.6, stagger: 0.08 }, 0.2)
       .fromTo(".h-in", { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05 }, 0.45)
       .fromTo(
@@ -182,8 +183,8 @@ export default function Hero() {
       const mm = gsap.matchMedia();
       mm.add(MQ.desktop, () => {
         const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
-        gsap.to(".h-portrait-wrap", { yPercent: 8, ease: "none", scrollTrigger: st });
-        gsap.to(".h-arch-wrap", { yPercent: 3, ease: "none", scrollTrigger: st });
+        gsap.fromTo(".h-portrait", { yPercent: -6 }, { yPercent: 2, ease: "none", scrollTrigger: st });
+        gsap.to(".h-arch", { y: -40, ease: "none", scrollTrigger: st });
         gsap.to(".h-left", { yPercent: -10, opacity: 0.2, ease: "none", scrollTrigger: st });
       });
       return () => mm.revert();
@@ -295,29 +296,35 @@ export default function Hero() {
         </div>
 
         {/* ---------- right: the portrait on an arch ---------- */}
-        <div className="relative h-[78svh] min-h-[520px] lg:col-span-6 lg:h-full">
-          <div className="h-arch-wrap absolute inset-x-[10%] bottom-0 top-[24%]">
-            <div className="h-arch h-full w-full rounded-t-[999px] bg-[#e2ded7]" />
-          </div>
+        <div className="relative pb-8 lg:col-span-6 lg:h-full lg:pb-0">
+          <div className="relative h-[66svh] min-h-[460px] lg:absolute lg:inset-0 lg:h-auto lg:min-h-0">
+          {/* thin outline arch, offset behind the photo */}
+          <div
+            aria-hidden="true"
+            className="h-arch absolute bottom-[4%] left-1/2 top-[9%] aspect-[0.72] max-w-[86%] -translate-x-[46%] rounded-t-[999px] border border-[var(--black)]/25 lg:top-[11%]"
+          />
 
-          <div className="h-portrait-wrap absolute inset-x-0 bottom-0 top-[6%] flex justify-center">
+          {/* the photo, framed in an arch */}
+          <div className="h-frame absolute bottom-[6%] left-1/2 top-[7%] aspect-[0.72] max-w-[86%] -translate-x-1/2 overflow-hidden rounded-t-[999px] bg-[#111] lg:top-[9%]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={images.hero}
               alt={`Portrait of ${site.name}`}
-              className="h-portrait h-full w-auto max-w-none object-contain object-bottom"
+              className="h-portrait absolute inset-0 h-[112%] w-full object-cover object-[50%_18%]"
               fetchPriority="high"
               draggable={false}
             />
+            <div className="pointer-events-none absolute inset-0 shadow-[inset_0_-120px_120px_-60px_rgba(0,0,0,0.55)]" />
           </div>
 
           {/* available badge (teal use #1) */}
-          <div className="h-pop absolute left-0 top-[6%] flex items-center gap-3 rounded-full bg-[var(--black)] px-4 py-3 text-[var(--paper)] lg:bottom-[9%] lg:left-[4%] lg:top-auto">
+          <div className="h-pop absolute bottom-[10%] left-0 flex items-center gap-3 rounded-full bg-[var(--black)] px-4 py-3 text-[var(--paper)] lg:bottom-[9%] lg:left-[4%]">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--teal)] opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--teal)]" />
             </span>
             <span className="mono text-[10px]">{hero.available}</span>
+          </div>
           </div>
 
           {/* the detail of the picked card */}
@@ -403,7 +410,7 @@ function DetailCard({ card, index }: { card: HeroCard; index: number }) {
     <div
       ref={ref}
       aria-live="polite"
-      className="h-pop on-black absolute bottom-[3%] right-0 w-[min(17rem,64vw)] p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] lg:bottom-[30%] lg:right-[-1%]"
+      className="h-pop on-black relative mt-4 w-full p-5 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] lg:absolute lg:bottom-[30%] lg:right-[-1%] lg:mt-0 lg:w-[17rem]"
     >
       <p className="dc-in mono flex justify-between text-[10px] text-[var(--mute)]">
         <span>{card.kicker}</span>

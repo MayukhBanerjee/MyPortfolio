@@ -2,7 +2,7 @@
  * Turns originals in /photos into web-ready files in /public/images.
  * Run: npm run photos
  *
- * hero-cutout.png -> hero-cutout.webp (B&W portrait, transparent background)
+ * hero.jpg     -> hero-portrait.webp (B&W, background kept, cropped to head and torso)
  * football.jpg -> football.jpg (B&W, resized)
  * diary.jpg    -> diary.jpg    (resized, colour kept)
  */
@@ -18,17 +18,24 @@ const jpeg = { quality: 80, mozjpeg: true, progressive: true };
 const done = [];
 
 async function hero() {
-  // hero-cutout.png is the portrait with the background removed (transparent PNG)
-  const src = join(SRC, "hero-cutout.png");
+  // full photo, background kept, cropped to head and torso, black and white
+  const src = join(SRC, "hero.jpg");
   if (!existsSync(src)) return;
-  const resized = await sharp(src).resize({ height: 1800, withoutEnlargement: true }).png().toBuffer();
-  const alpha = await sharp(resized).extractChannel(3).toBuffer();
-  const grey = await sharp(resized).removeAlpha().grayscale().linear(1.12, -10).toBuffer();
+  const grey = await sharp(src)
+    .rotate()
+    .extract({ left: 420, top: 980, width: 2240, height: 3180 })
+    .resize({ width: 1400 })
+    .grayscale()
+    .normalise()
+    .toColourspace("b-w")
+    .png()
+    .toBuffer();
   await sharp(grey)
-    .joinChannel(alpha)
-    .webp({ quality: 84, alphaQuality: 90 })
-    .toFile(join(OUT, "hero-cutout.webp"));
-  done.push("hero-cutout.webp");
+    .linear(1.08, -6)
+    .sharpen({ sigma: 0.7 })
+    .webp({ quality: 84 })
+    .toFile(join(OUT, "hero-portrait.webp"));
+  done.push("hero-portrait.webp");
 }
 
 async function simple(name, { grey, width }) {

@@ -55,7 +55,7 @@ public/images/          photos (see README there)
 ## Scenes
 | # | File | What happens | 3D? |
 |---|---|---|---|
-| 00+01 | `sections/Hero.tsx` | Loader overlay (1px line, real-loading counter, line shatters, overlay wipes up), then a light editorial hero: intro + headline + CTAs on the left, B&W cutout portrait on a soft arch on the right, "open to roles" badge (teal dot). **Pickable cards**: 4 proof cards (Production AI / Research / Hackathon / Football); picking one swaps the dark detail card beside the portrait (metric, sparkline, one line). Cycles every 4.8s with a progress line until someone picks. Light parallax on scroll. | no |
+| 00+01 | `sections/Hero.tsx` | Loader overlay (1px line, real-loading counter, line shatters, overlay wipes up), then a light editorial hero: intro + headline + CTAs on the left, full B&W portrait (background kept) framed in an arch with an offset outline arch, revealed by a clip wipe + slow zoom, "open to roles" badge (teal dot). **Pickable cards**: 4 proof cards (Production AI / Research / Hackathon / Football); picking one swaps the dark detail card beside the portrait (metric, sparkline, one line). Cycles every 4.8s with a progress line until someone picks. Light parallax on scroll. | no |
 | 02 | `sections/Statement.tsx` | Paper. The claim sits small in the centre, surrounded by 5 quiet grey notes (the real problems behind the projects). Pinned: each note is "said out loud" centre stage, then settles in black with "→ became X" linking to its project. On mobile it's a list that darkens as you read. | no |
 | 03 | `sections/Origin.tsx` | Black. "How I got here": 4 chapters (The pitch / A calculator / The backup / Day one) with a sticky chapter index on desktop. Each chapter has a title, a line in his voice (serif italic), 2 short paragraphs and one module: football record table (U-17 1st in teal), a working calculator that types 2+2= itself (`components/story/Calculator.tsx`), an event-day log with a live counter to 200 (teal), and a day-one vs now panel. | no |
 | 04 | `sections/HowIWork.tsx` | Research-first copy, depth ladder, and **TinyLM**: a real trigram model trained on the site's own text, showing live next-word probabilities. | no |
@@ -86,9 +86,7 @@ Global: `MatchClock` (scroll → 00'–90', HT at half; top-centre on phones), `
 
 ## Photos
 Originals go in `photos/` (gitignored). Run `npm run photos` (`scripts/prepare-photos.mjs`, uses sharp) to write optimized files to `public/images/`:
-- `hero-cutout.png` (portrait with the background removed) becomes `hero-cutout.webp` (B&W, transparent).
-  - The cutout was made with rembg (`u2net_human_seg`), then the alpha was smoothed (blur + levels).
-  - The source shot is `photos/hero.jpg`.
+- `hero.jpg` becomes `hero-portrait.webp`: black and white, background kept, cropped to head and torso (crop box in `scripts/prepare-photos.mjs`). The background-removed cutout was dropped because the night shot gave rough hair edges.
 - `football.jpg` and `diary.jpg` are optimized if present. Scenes fall back to placeholders when they're missing.
 
 ## Status / TODO
