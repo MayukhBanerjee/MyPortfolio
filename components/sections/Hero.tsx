@@ -11,6 +11,9 @@ const SEGMENTS = 14;
 const INTRO_KEY = "mb-intro-seen";
 const CYCLE_MS = 4800;
 const LG = "(min-width: 1024px)";
+/** Intro screen: photo height and vertical centre, as a share of the screen. */
+const INTRO_H = 0.72;
+const INTRO_Y = 0.52;
 
 /**
  * Section 00 + 01 — loader, then the hero.
@@ -35,14 +38,14 @@ export default function Hero() {
   useIsoLayoutEffect(() => {
     if (window.matchMedia(MQ.reduced).matches) return;
     gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop, .hi-photo, .hi-hello", { autoAlpha: 0 });
-    gsap.set(".hi-name .mask-line > span", { yPercent: 108 });
+    gsap.set(".hi-word .mask-line > span", { yPercent: 108 });
   }, []);
 
   /* ---------- the entrance: only the intro screen. The rest arrives on scroll ---------- */
   const enter = useCallback((delay = 0) => {
     if (window.matchMedia(MQ.reduced).matches) {
       gsap.set(".h-in, .h-line > span, .h-frame, .h-arch, .h-pop, .hi-photo, .hi-hello", { autoAlpha: 1 });
-      gsap.set(".hi-name .mask-line > span", { yPercent: 0 });
+      gsap.set(".hi-word .mask-line > span", { yPercent: 0 });
       return;
     }
     const desktop = window.matchMedia(LG).matches;
@@ -54,8 +57,8 @@ export default function Hero() {
       0
     )
       .fromTo(desktop ? ".h-frame img" : ".hi-photo img", { scale: 1.2 }, { scale: 1, duration: 1.8, ease: "expo.out" }, 0.1)
-      .fromTo(".hi-hello", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.7 }, 0.55)
-      .to(".hi-name .mask-line > span", { yPercent: 0, duration: 0.9, stagger: 0.1, ease: "expo.out" }, 0.65);
+      .to(".hi-word .mask-line > span", { yPercent: 0, duration: 1, stagger: 0.12, ease: "expo.out" }, 0.55)
+      .fromTo(".hi-hello", { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.8 }, 0.9);
   }, []);
 
   /* ---------- Section 00: loader, driven by real loading. First visit per session only ---------- */
@@ -191,11 +194,15 @@ export default function Hero() {
         const intro = () => {
           const s = section.getBoundingClientRect();
           const b = box.getBoundingClientRect();
-          const finalH = b.height * 0.85;
+          // offsetWidth/Height ignore transforms, so this is the frame's real size in the hero
+          const finalW = frame.offsetWidth;
+          const finalH = frame.offsetHeight;
           const finalCx = b.left - s.left + b.width / 2;
           const finalCy = b.top - s.top + b.height * 0.09 + finalH / 2;
-          const targetH = s.height * 0.8;
-          return { x: s.width / 2 - finalCx, y: s.height * 0.52 - finalCy, scale: targetH / finalH };
+          const scale = (s.height * INTRO_H) / finalH;
+          // the words sit either side of the photo, so they need its width on the intro screen
+          section.style.setProperty("--hi-w", `${finalW * scale}px`);
+          return { x: s.width / 2 - finalCx, y: s.height * INTRO_Y - finalCy, scale };
         };
         let m = intro();
 
@@ -220,8 +227,9 @@ export default function Hero() {
           { x: 0, y: 0, scale: 1, ease: "power2.inOut", duration: 1 },
           0.08
         )
-          .to(".hi-hello", { autoAlpha: 0, y: -24, duration: 0.25, ease: "power2.in" }, 0)
-          .to(".hi-name", { yPercent: -30, autoAlpha: 0, duration: 0.4, ease: "power2.in" }, 0)
+          .to(".hi-hello", { autoAlpha: 0, duration: 0.2, ease: "none" }, 0)
+          .to(".hi-left", { xPercent: -40, autoAlpha: 0, duration: 0.45, ease: "power2.in" }, 0)
+          .to(".hi-right", { xPercent: 40, autoAlpha: 0, duration: 0.45, ease: "power2.in" }, 0)
           .to(".h-hello", { autoAlpha: 0, duration: 0.45, ease: "none" }, 0.35)
           .fromTo(".h-line > span", { autoAlpha: 1, yPercent: 108 }, { yPercent: 0, stagger: 0.06, duration: 0.35 }, 0.72)
           .fromTo(".h-in", { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, stagger: 0.05, duration: 0.3 }, 0.82)
@@ -309,9 +317,40 @@ export default function Hero() {
         </button>
       </div>
 
-      {/* ---------- the intro screen: just me, saying hello ---------- */}
-      <div className="hi-intro relative flex h-[100svh] flex-col items-center justify-center gap-8 lg:pointer-events-none lg:absolute lg:inset-0 lg:z-20 lg:h-auto lg:gap-0 lg:pt-[38vh] lg:text-white lg:mix-blend-difference">
-        <div className="hi-photo relative aspect-[0.72] h-[54svh] max-w-[86vw] overflow-hidden rounded-t-[999px] bg-[#111] lg:hidden">
+      {/* ---------- the intro screen: just me, saying hello. The name wraps around the photo ---------- */}
+      <div
+        className="hi-intro relative flex h-[100svh] flex-col items-center justify-center lg:pointer-events-none lg:absolute lg:inset-0 lg:z-20 lg:grid lg:h-auto lg:items-center lg:gap-[var(--hi-gap)] lg:px-[var(--gutter)]"
+        style={
+          {
+            gridTemplateColumns: "1fr var(--hi-w, 46svh) 1fr",
+            "--hi-gap": "clamp(24px, 2.6vw, 48px)",
+            // both words share one size: whatever fits the space beside the photo (BANERJEE is ~5.9em wide)
+            "--hi-fs": "min(calc((100vw - var(--hi-w, 46svh) - 2 * var(--gutter) - 2 * var(--hi-gap)) / 2 / 6.1), 15svh)",
+          } as React.CSSProperties
+        }
+      >
+        {/* left: Hi, I'm / MAYUKH */}
+        <div className="hi-left relative flex flex-col items-center lg:items-end lg:self-center lg:pt-[18svh]">
+          <div className="relative flex flex-col items-center lg:items-end">
+            <p className="hi-hello voice text-[clamp(24px,2.3vw,40px)] leading-none lg:absolute lg:bottom-full lg:right-0 lg:pb-[0.45em]">
+              {hero.introHello}
+            </p>
+            <p
+              className="hi-word display mt-2 text-[clamp(60px,16vw,96px)] uppercase leading-[0.82] lg:mt-0 lg:text-[length:var(--hi-fs)]"
+              style={{ fontWeight: 900, fontStretch: "100%" }}
+            >
+              <span className="mask-line">
+                <span>{site.first}</span>
+              </span>
+            </p>
+          </div>
+        </div>
+
+        {/* centre: on desktop the real frame (.h-frame) flies here; this keeps the column */}
+        <div aria-hidden="true" className="hidden lg:block" />
+
+        {/* phones: the photo lives in the stack */}
+        <div className="hi-photo relative order-none my-5 aspect-[0.72] h-[50svh] max-w-[80vw] overflow-hidden rounded-t-[999px] bg-[#111] lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={hasHello ? images.hello : images.hero}
@@ -319,15 +358,13 @@ export default function Hero() {
             className={`absolute inset-0 h-full w-full object-cover ${hasHello ? "object-[50%_30%]" : "object-[50%_18%]"}`}
           />
         </div>
-        <div className="text-center">
-          <p className="hi-hello voice text-[clamp(26px,3.2vw,52px)] leading-none">{hero.introHello}</p>
+
+        {/* right: BANERJEE, thin */}
+        <div className="hi-right flex flex-col items-center lg:items-start lg:self-center lg:pt-[18svh]">
           <p
-            className="hi-name display mt-3 text-[clamp(56px,15.5vw,260px)] uppercase leading-[0.84] lg:mt-4"
-            style={{ fontWeight: 800, fontStretch: "100%" }}
+            className="hi-word display text-[clamp(52px,14vw,84px)] uppercase leading-[0.82] lg:text-[length:var(--hi-fs)]"
+            style={{ fontWeight: 200, fontStretch: "100%", letterSpacing: "-0.01em" }}
           >
-            <span className="mask-line">
-              <span>{site.first}</span>
-            </span>
             <span className="mask-line">
               <span>{site.last}</span>
             </span>
