@@ -19,7 +19,7 @@ const instrumentSerif = Instrument_Serif({
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
 /** The address set as the homepage of the GitHub repo. Change it here if the live address differs. */
-const url = "https://mayukh-sable.vercel.app";
+const url = "https://mayukh-banerjee.vercel.app";
 const preview = { url: "/og.png", width: 1200, height: 630, alt: `${site.name}, ${site.role}` };
 
 export const metadata: Metadata = {
