@@ -74,6 +74,8 @@ export type HeroCard = {
 
 export const hero = {
   introHello: "Hi, I'm",
+  lampHint: "Run your cursor through the lamp. Click to light it all.",
+  lampHintTouch: "Touch the lamp to light it.",
   kicker: "AI/ML engineer",
   cueRing: "Scroll down · Scroll down · ",
   cueLabel: "Scroll down",

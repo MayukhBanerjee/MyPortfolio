@@ -6,6 +6,14 @@ import { useImageAvailable, useIsoLayoutEffect } from "@/lib/hooks";
 import { useSite } from "@/components/Providers";
 import { hero, images, site, type HeroCard } from "@/data/portfolio";
 import LiveTime from "@/components/ui/LiveTime";
+import dynamic from "next/dynamic";
+import type { LampLayout } from "@/components/three/FiberLamp";
+
+const FiberLamp = dynamic(() => import("@/components/three/FiberLamp"), { ssr: false });
+
+/** The fibre lamp on screen 1. Desktop: rises between the name and the photo. Phones: behind the photo. */
+const LAMP_DESKTOP: LampLayout = { baseX: 0.5, reach: 0.84, spread: 0.62, count: 1500 };
+const LAMP_PHONE: LampLayout = { baseX: 0.5, reach: 0.78, spread: 1.05, count: 750 };
 
 const SEGMENTS = 14;
 const INTRO_KEY = "mb-intro-seen";
@@ -58,18 +66,30 @@ export default function Hero() {
   const [active, setActive] = useState(0);
   const [auto, setAuto] = useState(true);
   const [hovering, setHovering] = useState(false);
+  const [lampOn, setLampOn] = useState(true);
+  const [isLg, setIsLg] = useState(true);
+  const [isTouch, setIsTouch] = useState(false);
+  const [lampDesk, setLampDesk] = useState<LampLayout>(LAMP_DESKTOP);
+  useEffect(() => {
+    setIsLg(window.matchMedia(LG).matches);
+    setIsTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
 
   /* ---------- initial states, before first paint ---------- */
   useIsoLayoutEffect(() => {
     const lg = window.matchMedia(LG).matches;
     if (window.matchMedia(MQ.reduced).matches) {
       // static: desktop shows the hero only; phones show both screens as they are
-      if (lg) gsap.set(".layer-a, .hi-cue", { display: "none" });
+      if (lg) {
+        gsap.set(".layer-a, .hi-cue, .dark-stage", { display: "none" });
+        gsap.set(".outline-arch", { borderColor: "rgba(0,0,0,0.3)" });
+      }
       return;
     }
     gsap.set(".a-letter", { yPercent: 118 });
     gsap.set(".a-last", { clipPath: "inset(0 100% 0 0)" });
-    gsap.set(".a-hello, .hi-cue", { autoAlpha: 0 });
+    gsap.set(".a-hello, .hi-cue, .lamp-hint", { autoAlpha: 0 });
+    gsap.set(".lamp-canvas", { autoAlpha: 0 });
     gsap.set(".frame, .m-photo-a", { clipPath: "inset(100% 0 0 0)" });
     gsap.set(".outline-arch", { autoAlpha: 0, x: 16, y: 12 });
     gsap.set(".m-outline", { autoAlpha: 0 });
@@ -113,6 +133,38 @@ export default function Hero() {
     };
   }, []);
 
+  /* ---------- the lamp takes the gap between the name and the photo, whatever the screen ---------- */
+  useEffect(() => {
+    if (!isLg) return;
+    let raf = 0;
+    const calc = () => {
+      const sec = sectionRef.current;
+      const name = firstRef.current;
+      const photo = sec?.querySelector<HTMLElement>(".photo-wrap");
+      if (!sec || !name || !photo) return;
+      const box = sec.getBoundingClientRect();
+      const left = name.getBoundingClientRect().right - box.left;
+      const right = photo.offsetLeft + (photo.offsetParent as HTMLElement | null)!.getBoundingClientRect().left - box.left;
+      const half = Math.max(40, (right - left) / 2);
+      // widest tip reaches ~1.08 x reach x height x sin(spread); let it tuck a little behind both sides
+      const sin = Math.min(0.8, Math.max(0.24, (half * 1.3) / (1.08 * LAMP_DESKTOP.reach * box.height)));
+      const next = { ...LAMP_DESKTOP, baseX: +(((left + right) / 2) / box.width).toFixed(3), spread: +Math.asin(sin).toFixed(2) };
+      setLampDesk((l) => (l.baseX === next.baseX && l.spread === next.spread ? l : next));
+    };
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => requestAnimationFrame(calc));
+    };
+    schedule();
+    document.fonts?.ready.then(schedule);
+    const ro = new ResizeObserver(schedule);
+    ro.observe(sectionRef.current!);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+  }, [isLg]);
+
   /* ---------- the entrance: screen 1 only. Everything else waits for the scroll ---------- */
   const enter = useCallback((delay: number, onReady: () => void) => {
     if (window.matchMedia(MQ.reduced).matches) {
@@ -139,6 +191,8 @@ export default function Hero() {
       .to(".a-last", { clipPath: "inset(0 0% 0 0)", duration: 0.9, ease: "expo.inOut" }, 0.4)
       .fromTo(".a-hello", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6 }, 0.6)
       .fromTo(".hi-cue", { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" }, 0.85)
+      .to(".lamp-canvas", { autoAlpha: 1, duration: 1.6, ease: "power2.out" }, 0.3)
+      .to(".lamp-hint", { autoAlpha: 1, duration: 0.6 }, 1.1)
       .add(onReady, 1.15);
   }, []);
 
@@ -270,7 +324,10 @@ export default function Hero() {
             scrub: 0.8,
             anticipatePin: 1,
             refreshPriority: 3,
-            onUpdate: (self) => flag(self.progress < 0.04),
+            onUpdate: (self) => {
+              flag(self.progress < 0.04);
+              setLampOn(self.progress < 0.45);
+            },
           },
         });
         const out = { immediateRender: false } as const;
@@ -280,6 +337,10 @@ export default function Hero() {
           .fromTo(".a-last", { clipPath: "inset(0 0% 0 0%)" }, { clipPath: "inset(0 0% 0 100%)", duration: 0.5, ease: "power3.in", ...out }, 0)
           .fromTo(".a-hello", { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.2, ...out }, 0)
           .fromTo(".hi-cue", { autoAlpha: 1, scale: 1 }, { autoAlpha: 0, scale: 0.6, duration: 0.25, ...out }, 0)
+          .fromTo(".lamp-hint", { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.15, ...out }, 0)
+          // the lights come on: the dark room fades into the paper hero
+          .fromTo(".dark-stage", { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.45, ease: "power2.inOut", ...out }, 0.12)
+          .fromTo(".outline-arch", { borderColor: "rgba(240,237,232,0.35)" }, { borderColor: "rgba(0,0,0,0.3)", duration: 0.45, ...out }, 0.12)
           // the photo strip is pulled DOWN: the smile drops in from the top, the suit exits at the bottom
           .fromTo(".strip", { yPercent: -50 }, { yPercent: 0, duration: 0.95, ease: "power2.inOut" }, 0.1)
           // the hero builds in on the left
@@ -305,7 +366,10 @@ export default function Hero() {
           trigger: section,
           start: "top top",
           end: () => `+=${window.innerHeight * 0.55}`,
-          onToggle: (self) => flag(self.isActive),
+          onToggle: (self) => {
+            flag(self.isActive);
+            setLampOn(self.isActive);
+          },
         });
         flag(true);
         // screen 2: the smiling photo is lowered into its arch, then the words arrive
@@ -512,11 +576,21 @@ export default function Hero() {
         {site.name}, {site.role}, {site.city}
       </h1>
 
+      {/* ============ screen 1's dark room, with the fibre lamp ============ */}
+      <div className="dark-stage on-black pointer-events-none absolute inset-x-0 top-0 z-0 h-[100svh] bg-[var(--black)] lg:inset-0 lg:h-auto">
+        <FiberLamp
+          key={isLg ? "lg" : "sm"}
+          layout={isLg ? lampDesk : LAMP_PHONE}
+          active={lampOn}
+          className="lamp-canvas absolute inset-0"
+        />
+      </div>
+
       {/* ============ desktop photo column: one frame, a strip of two photos inside ============ */}
       <div className="photocol pointer-events-none absolute inset-0 z-[1] hidden grid-cols-12 items-center px-[var(--gutter)] lg:grid">
         <div className="col-span-5 col-start-8 flex justify-center">
           <div className="photo-wrap relative aspect-[0.72] w-full max-w-[min(100%,calc(76svh*0.72))]">
-            <div aria-hidden="true" className="outline-arch absolute inset-0 rounded-t-[999px] border border-[var(--black)]/30" />
+            <div aria-hidden="true" className="outline-arch absolute inset-0 rounded-t-[999px] border" style={{ borderColor: "rgba(240,237,232,0.35)" }} />
 
             <div className="frame absolute inset-0 overflow-hidden rounded-t-[999px] bg-[#e3dfd8]">
               <div className="strip absolute inset-x-0 top-0 h-[200%]">
@@ -553,13 +627,6 @@ export default function Hero() {
               />
             </div>
 
-            {/* scroll cue: sits on the corner of the photo, clicking it goes to the hero */}
-            <Cue
-              id="cue-d"
-              onClick={next}
-              className="pointer-events-auto absolute -bottom-[5%] -left-[15%] h-[clamp(5.2rem,9.5svh,6.8rem)] w-[clamp(5.2rem,9.5svh,6.8rem)]"
-            />
-
             {/* hero extras, shown once the photo has come down */}
             <div className="b-pop pointer-events-auto absolute -left-[22%] bottom-[9%] max-[1279px]:-left-[14%] flex items-center gap-3 rounded-full bg-[var(--black)] px-4 py-3 text-[var(--paper)]">
               <OpenDot />
@@ -576,8 +643,8 @@ export default function Hero() {
       </div>
 
       {/* ============ screen 1: Hi, I'm MAYUKH BANERJEE ============ */}
-      <div className="layer-a relative flex min-h-[100svh] flex-col justify-center gap-9 px-[var(--gutter)] pb-32 pt-16 lg:pointer-events-none lg:absolute lg:inset-0 lg:z-[2] lg:grid lg:min-h-0 lg:grid-cols-12 lg:items-center lg:gap-6 lg:pb-0 lg:pt-0">
-        <div ref={nameColRef} className="name-col relative lg:col-span-7 lg:pr-[4vw]">
+      <div className="layer-a relative flex min-h-[100svh] flex-col justify-center gap-9 px-[var(--gutter)] pb-32 pt-16 text-[var(--paper)] lg:pointer-events-none lg:absolute lg:inset-0 lg:z-[2] lg:grid lg:min-h-0 lg:grid-cols-12 lg:items-center lg:gap-6 lg:pb-0 lg:pt-0">
+        <div ref={nameColRef} className="name-col relative lg:col-span-4 lg:pr-[1vw]">
           <p className="a-hello voice text-[clamp(26px,2.8vw,50px)] leading-none">{hero.introHello}</p>
           <h2 aria-label={site.name} className="namewrap relative mt-[0.5em] w-max max-w-full uppercase">
             <span
@@ -615,11 +682,23 @@ export default function Hero() {
               />
             </span>
           </h2>
+
+          {/* desktop: how to use this screen, in one place */}
+          <div className="mt-[6svh] hidden items-center gap-6 lg:flex">
+            <Cue
+              id="cue-d"
+              onClick={next}
+              className="pointer-events-auto relative h-[clamp(4.6rem,8.5svh,5.8rem)] w-[clamp(4.6rem,8.5svh,5.8rem)] shrink-0"
+            />
+            <p className="lamp-hint mono max-w-[16rem] leading-relaxed text-[#8a8782]">
+              {isTouch ? hero.lampHintTouch : hero.lampHint}
+            </p>
+          </div>
         </div>
 
         {/* phones: the suit photo sits under the name */}
         <div className="relative mx-auto aspect-[0.72] h-[46svh] max-w-full lg:hidden">
-          <div aria-hidden="true" className="m-outline absolute inset-0 translate-x-[5%] translate-y-[3%] rounded-t-[999px] border border-[var(--black)]/30" />
+          <div aria-hidden="true" className="m-outline absolute inset-0 translate-x-[5%] translate-y-[3%] rounded-t-[999px] border border-[var(--paper)]/35" />
           <div className="m-photo-a absolute inset-0 overflow-hidden rounded-t-[999px] bg-[#111]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={images.hero} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover object-[50%_18%]" />
@@ -738,7 +817,7 @@ function Cue({ id, onClick, className }: { id: string; onClick: () => void; clas
       type="button"
       onClick={onClick}
       aria-label={hero.cueLabel}
-      className={`hi-cue group grid place-items-center rounded-full bg-[var(--black)] text-[var(--paper)] transition-transform duration-300 hover:scale-105 ${className}`}
+      className={`hi-cue group grid place-items-center rounded-full bg-[var(--paper)] text-[var(--black)] transition-transform duration-300 hover:scale-105 ${className}`}
     >
       <svg viewBox="0 0 120 120" aria-hidden="true" className="cue-spin absolute inset-0 h-full w-full">
         <defs>
