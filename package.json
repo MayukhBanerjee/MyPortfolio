@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "photos": "node scripts/prepare-photos.mjs"
+    "photos": "node scripts/prepare-photos.mjs",
+    "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
